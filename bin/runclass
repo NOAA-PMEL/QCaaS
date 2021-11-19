@@ -1,0 +1,109 @@
+#!/bin/bash -f
+# usage: runclass [-] <java class name> <classes dir> <libs dir>
+
+# echo rc star : "$*"
+# echo rc at : "$@"
+
+VERBOSE=false 
+checkVerbose() {
+	while [ "$1" != "" ] ; do
+		arg=$1
+# echo "Checking arg: $arg"
+		if [ ${arg:0:2} == "-v" ] ; then
+			echo verbose flag set
+			VERBOSE=true
+		fi
+		shift
+	done
+}
+
+checkVerbose $*
+echo VERBOSE: $VERBOSE
+
+log() {
+	if [ "true" = "$VERBOSE" ] ; then
+		echo log: $*
+	fi
+}
+
+THIS=$0
+PROG_PATH=${THIS%/*}
+DIR="$( cd "$( dirname "$0" )" && pwd )"
+
+HOST_NAME=`hostname`
+NODE=${HOST_NAME%%\.*}
+
+if [ ! $1 ] ; then
+	echo Usage: runclass CLASS CLASSES_DIR [LIBS_DIR]* [ARGS]
+#	echo Use dash to output to stdout and not background process
+	exit 1;
+fi
+
+# if [ "$1" = "-" ] ; then
+# 	NO_LOG=true
+# 	shift
+# fi
+
+CLASS=$1
+CLASS_FILE=${CLASS##*\.}
+shift
+
+CLASSES=$1
+shift
+
+# OG_DIR=${DIR}/../logs
+# NODE_FILE=${CLASS_FILE}.${NODE}
+# LOG_FILE=${LOG_DIR}/${NODE_FILE}.sysout.log
+# PID_FILE=${LOG_DIR}/${NODE_FILE}.pid
+
+CP=`${PROG_PATH}/makecp $*`
+
+CP=${CLASSES}:${CP} 
+shift
+
+log $CP
+
+ARGS=()
+DEFS=""
+JVM_ARGS=""
+
+whitespace="[[:space:]]"
+
+while [ "$1" != "" ] ; do
+log "arg: $1"
+	arg="$1"
+	${PROG_PATH}/makecp $arg > /dev/null
+	hasJars=$?
+	# echo $arg hasJars : $hasJars
+	if [ ${arg:0:2} == "-D" ] ; then
+		DEFS="$DEFS $arg"
+log "Defined: $arg"
+	elif [ "${arg}" == "-d" ] ; then
+		DEBUG="-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=9109"
+log "Debug as $DEBUG"
+	elif [ ${arg:0:2} == "-X" ] ; then
+		JVM_ARGS="$JVM_ARGS $arg"
+log "JVM arg $arg"
+	elif [ $hasJars -eq 0 ] ; then
+		log "skipping presumed classpath arg $arg"
+	else
+        if [[ "$arg" =~ $whitespace ]] ; then
+            arg=\"$arg\"
+            log "quoting arg to: $arg"
+        fi
+		ARGS+=($arg)
+log "ARGS: ${ARGS[@]}"
+	fi
+	shift
+done
+
+log CMD: java -D${CLASS} ${DEBUG} $JVM_ARGS $DEFS -classpath $CP ${CLASS} ${ARGS[@]}
+
+eval "java -D${CLASS} ${DEBUG} $JVM_ARGS $DEFS -classpath .:$CP ${CLASS} ${ARGS[@]}"
+RESULT=$?
+PID=$!
+log run result: $RESULT
+log PID: $PID
+
+exit $RESULT
+

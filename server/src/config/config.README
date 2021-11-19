@@ -1,0 +1,20 @@
+ The config directory contains files that include definitions for configurable options within the system.
+ 
+ The configuration system has a hierarchy of precedence.  
+ 
+ There is a primary configuration file that generally (although not always) includes all of the configurable parameters and their default values.
+ This file is typically named as <module-name>.props.  In this case it is qcaas.props.
+ The properties generally (but not always) take the form of <module-name>.<subsystem>.<property>=<value>.
+ 
+ The next level of precedence is a machine-specific configuration file, named <machine-name>.<module-name>.props.
+ Properties defined in this file will over-ride properties in the primary config file.
+ 
+ The next level of precedence is a named-environment configuration file.
+ This file is named as <env_name>.<module-name>.props. An example here is dev.qcaas.props.
+ Note that often these machine- and environment-specific files are not committed to source control as they may contain sensitive information, such as database credentials.
+ The running environment can be specified in either in the primary config file or the machine-specific file, or both.
+ In the case where it is specified in both, the machine-specific environment will take precedence.
+ 
+ Finally, properties may also be specified as environment variables and as command line definitions as -D<dotted.property.name>=<value>.
+ Environmental variables override configuration file properties, and command line-specified properties have the highest precedence.
+ 

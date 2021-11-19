@@ -1,0 +1,24 @@
+#!/bin/bash
+
+cp=""
+c=""
+
+for dir in $* ; do
+	if [ -e $dir ] &&  [ -d $dir ] ; then
+		jars=`find $dir -name "*.jar"`
+		for jar in $jars ; do
+			cp=${cp}${c}$jar
+			c=":"
+		done
+	fi
+done
+
+echo $cp
+
+if [ "" = "$cp" ] ; then
+	retval=1
+else
+	retval=0
+fi
+
+exit $retval

@@ -1,0 +1,13 @@
+This project uses lombok (https://projectlombok.org)
+
+Lombok provides a lot of annotation-driven code generation.
+
+To enable lombok annotations:
+
+- In general, see the install section on the project lombok website.
+
+NOTE that I have only done this with Eclipse on mac.
+
+In Eclipse:  double-click on dev-libs/lombok.jar 
+In IntelliJ: install the lombok plugin. It comes bundled in later versions.
+

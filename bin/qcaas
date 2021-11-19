@@ -1,0 +1,46 @@
+#!/bin/bash
+
+THIS=$0
+echo THIS: $THIS
+PROG_PATH=${THIS%/*}
+DIR="$( cd "$( dirname "$0" )" && pwd )"
+
+host=`hostname`
+host=${host%%\.*}
+host=${host/-/_}
+echo host: $host
+
+matisse_CONTENT_ROOT="/local/tomcat"
+dunkel_CONTENT_ROOT="/home/users/kamb/tomcat/tomcat-5680-8.5.11"
+new_bock_CONTENT_ROOT="/usr/local/src/oads/apache-tomcat-8.5.34"
+
+content_var="${host}_CONTENT_ROOT"
+echo content_var = $content_var
+
+OA_DOCUMENT_ROOT="${!content_var}"
+echo "CONTENT_ROOT $OA_DOCUMENT_ROOT"
+if [ ! "$OA_DOCUMENT_ROOT" ] ; then
+	echo No content root found for host $host
+	exit 1
+fi
+OA_DOC_PROP="-DOA_DOCUMENT_ROOT=${OA_DOCUMENT_ROOT}"
+
+STD_LOC=content/OAPUploadDashboard/bin
+
+matisse_APP_CONTENT="${OA_DOCUMENT_ROOT}/${STD_LOC}"
+dunkel_APP_CONTENT="${OA_DOCUMENT_ROOT}/${STD_LOC}"
+new_bock_APP_CONTENT="${OA_DOCUMENT_ROOT}/${STD_LOC}"
+
+APP_CONTENT="${host}_APP_CONTENT"
+
+CLIENT_JAR="${DIR}/qcaas-client.jar"
+echo client jar: $CLIENT_JAR
+
+# OAP_ENV=-Doap.env=matisse 
+# DEBUG_CONFIG=-Dconfiguration_debug 
+
+cmd="java ${DEBUG_CONFIG} ${OAP_ENV} -jar ${CLIENT_JAR} $@"
+echo cmd: $cmd
+java ${DEBUG_CONFIG} ${OAP_ENV} -jar ${CLIENT_JAR} "$@"
+
+

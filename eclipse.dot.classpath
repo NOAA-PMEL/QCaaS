@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="src" output="build/server/classes" path="server/src"/>
+	<classpathentry kind="src" output="build/client/classes" path="client/src"/>
+	<classpathentry kind="src" output="build/common/classes" path="common/src"/>
+	<classpathentry kind="src" output="test/build/classes" path="test/client/src"/>
+	<classpathentry kind="src" output="test/build/classes" path="test/common/src"/>
+	<classpathentry kind="src" output="test/build/classes" path="test/server/src"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.8">
+		<attributes>
+			<attribute name="owner.project.facets" value="java"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="con" path="org.eclipse.jst.j2ee.internal.web.container"/>
+	<classpathentry kind="con" path="org.eclipse.jst.j2ee.internal.module.container"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/qcaas_lib-dev"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/qcaas_common_libs"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/qcaas_client_libs"/>
+	<classpathentry kind="lib" path="lib-dev/lombok.1.18.4.jar"/>
+	<classpathentry kind="output" path="build/classes"/>
+</classpath>

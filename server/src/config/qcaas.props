@@ -1,0 +1,10 @@
+#
+# runtime configuration for QCaaS project
+#
+
+# whether messages are expected to be digitally signed and validated
+# default is true
+# qcaas.request.validate=true
+
+
+

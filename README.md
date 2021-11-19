@@ -1,6 +1,20 @@
 # QCaaS
 Ocean data Quality Control as a Service prototype exploration project.
 
+This project contains source and resources for a prototype web services-based data QC checking system.
+
+#### Organization
+The project has 3 main components: 
+ -  server : Server-side Web Service endpoint that invokes the external server-side Quality Control routines 
+ -  client : Client-side proxy that invokes the Web Service.
+ -  common : Java files used by both client and server, primarily request and response messages and elements.
+
+Additional components include a test web server to run the Web Services for testing, as well as a test client to drive
+test invocations.
+
+#### Files
+In general, please refrain from committing IDE- or local environment-specific files and configuration.
+
 #### Legal Disclaimer
 *This repository is a software product and is not official communication 
 of the National Oceanic and Atmospheric Administration (NOAA), or the 
