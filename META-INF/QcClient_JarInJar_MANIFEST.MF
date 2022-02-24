@@ -1,0 +1,10 @@
+Manifest-Version: 1.0
+Rsrc-Class-Path: ./ jackson-annotations-2.9.8.jar jackson-core-2.9.8.j
+ ar jackson-databind-2.9.8.jar jackson-jaxrs-base-2.9.8.jar jackson-ja
+ xrs-json-provider-2.9.8.jar jersey-bundle-1.19.1.jar org.json.stleary
+ .jar jetty-all-9.2.2.v20140723.jar servlet-api-3.1.jar lombok.1.18.4.
+ jar log4j-1.2.17.jar tws_pkauth.jar tws_util.jar tws_client.jar
+Class-Path: .
+Rsrc-Main-Class: gov.noaa.pmel.qcaas.client.QcClient
+Main-Class: org.eclipse.jdt.internal.jarinjarloader.JarRsrcLoader
+
