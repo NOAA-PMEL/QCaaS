@@ -9,6 +9,7 @@ import gov.noaa.pmel.qcaas.ServiceInfo;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.SuperBuilder;
 
@@ -19,6 +20,7 @@ import lombok.experimental.SuperBuilder;
 @Data
 @SuperBuilder
 @Setter(AccessLevel.NONE)
+@NoArgsConstructor
 public class QcServiceResponse {
 
     @Builder.Default

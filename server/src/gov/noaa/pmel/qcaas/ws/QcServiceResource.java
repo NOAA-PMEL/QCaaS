@@ -21,7 +21,7 @@ import javax.ws.rs.core.SecurityContext;
 import org.apache.log4j.Logger;
 
 import gov.noaa.pmel.qcaas.QcServiceWS;
-import gov.noaa.pmel.qcaas.qc.QcServiceImpl;
+import gov.noaa.pmel.qcaas.qc.QcServiceIfc;
 import gov.noaa.pmel.tws.util.Logging;
 
 /**
@@ -103,9 +103,11 @@ public class QcServiceResource extends ResourceBase implements IfQcServiceWs {
     public Response performQc(@PathParam("test") String p_testName,
                               QcInvocationRequest qcRequest) {
         logger.info(dumpRequest(httpRequest));
+        logger.debug(qcRequest);
         try {
-            QcServiceImpl svc = new QcServiceImpl();
+            QcServiceIfc svc = QcServiceFactory.getQcService(p_testName, qcRequest);
             QcInvocationResponse response = svc.performQc(qcRequest);
+            logger.debug(response);
             return Response.ok(response).build();
         } catch (Exception ex) {
             logger.warn(ex,ex);

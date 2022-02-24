@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<project default="build_war" name="Create Artifacts for qcaas Project ">
+    <!--this file was created by Eclipse Runnable JAR Export Wizard-->
+    <!--ANT 1.7 is required                                        -->
+    <!--define folder properties-->
+    <property name="dir.buildfile" value="."/>
+    <property name="dir.workspace" value="${dir.buildfile}/.."/>
+    <property name="dir.jarfile" value="${dir.buildfile}/qcclient"/>
+    <target name="create_client_jar">
+        <jar destfile="${dir.jarfile}/qcaas-client.jar" filesetmanifest="mergewithoutmain">
+            <manifest>
+                <attribute name="Main-Class" value="gov.noaa.pmel.qcaas.client.QcClient"/>
+                <attribute name="Class-Path" value="."/>
+            </manifest>
+            <fileset dir="${dir.buildfile}/build/client/classes"/>
+            <fileset dir="${dir.buildfile}/build/common/classes"/>
+            <zipfileset excludes="META-INF/*.SF" src="${dir.buildfile}/WebContent/WEB-INF/lib/jackson-annotations-2.9.8.jar"/>
+            <zipfileset excludes="META-INF/*.SF" src="${dir.buildfile}/WebContent/WEB-INF/lib/jackson-core-2.9.8.jar"/>
+            <zipfileset excludes="META-INF/*.SF" src="${dir.buildfile}/WebContent/WEB-INF/lib/jackson-databind-2.9.8.jar"/>
+            <zipfileset excludes="META-INF/*.SF" src="${dir.buildfile}/WebContent/WEB-INF/lib/jackson-jaxrs-base-2.9.8.jar"/>
+            <zipfileset excludes="META-INF/*.SF" src="${dir.buildfile}/WebContent/WEB-INF/lib/jackson-jaxrs-json-provider-2.9.8.jar"/>
+            <zipfileset excludes="META-INF/*.SF" src="${dir.buildfile}/WebContent/WEB-INF/lib/jersey-bundle-1.19.1.jar"/>
+            <zipfileset excludes="META-INF/*.SF" src="${dir.buildfile}/WebContent/WEB-INF/lib/org.json.stleary.jar"/>
+            <zipfileset excludes="META-INF/*.SF" src="${dir.buildfile}/common/lib/log4j-1.2.17.jar"/>
+            <zipfileset excludes="META-INF/*.SF" src="${dir.buildfile}/common/lib/tws_pkauth.jar"/>
+            <zipfileset excludes="META-INF/*.SF" src="${dir.buildfile}/common/lib/tws_util.jar"/>
+            <zipfileset excludes="META-INF/*.SF" src="${dir.buildfile}/client/lib/tws_client.jar"/>
+        </jar>
+    </target>
+	<target name="build_war">
+		<war destfile="qcaas.war" webxml="WebContent/WEB-INF/web.xml">
+            <classes dir="${dir.buildfile}/build/server/classes"/>
+            <classes dir="${dir.buildfile}/build/common/classes"/>
+			<fileset dir="${dir.buildfile}/WebContent">
+				<include name="**/*.*"/>
+			</fileset>
+			<lib dir="${dir.buildfile}/common/lib"/>
+		</war>
+	</target>
+</project>

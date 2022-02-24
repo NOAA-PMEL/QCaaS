@@ -1,0 +1,5 @@
+# 
+# production-environment-specific properties specified here
+# The environment would be specified as:
+# qcaas.env=prod
+#

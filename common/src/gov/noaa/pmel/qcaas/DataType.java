@@ -12,7 +12,8 @@ public enum DataType {
     BOOLEAN(Boolean.class),
     INTEGER(Integer.class),
     DECIMAL(Double.class),
-    STRING(String.class);
+    STRING(String.class),
+    FLAG(Character.class);
 
     private Class _class;
     

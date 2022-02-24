@@ -10,6 +10,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.NoArgsConstructor;
+import lombok.NonNull;
 import lombok.Singular;
 import lombok.ToString;
 
@@ -17,12 +18,16 @@ import lombok.ToString;
  * @author kamb
  *
  */
-@Builder
+@Builder(toBuilder=true)
 @ToString
 @NoArgsConstructor
 @AllArgsConstructor
 public class DataRow {
 
+    @NonNull
+    @JsonProperty("row_number")
+    private Integer _rowNum;
+    
     @JsonProperty("values")
     @Singular("addValue")
     private List<Object> _values;
@@ -36,7 +41,13 @@ public class DataRow {
     }
     
     public Double getDoubleValue(int at) {
-        return (Double) _values.get(at);
+        Object v = _values.get(at);
+        if ( v instanceof Double ) { return (Double) v; }
+        return Double.parseDouble(String.valueOf(v));
+    }
+    
+    public int size() {
+        return _values.size();
     }
     
     public static void main(String[] args) {

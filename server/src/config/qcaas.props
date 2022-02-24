@@ -2,9 +2,13 @@
 # runtime configuration for QCaaS project
 #
 
-# whether messages are expected to be digitally signed and validated
-# default is true
-# qcaas.request.validate=true
+# qcaas.env=prod
 
+# whether messages are expected to be digitally signed and validated
+# qcaas.request.validate=false
+
+qcaas.qc.script=bin/qcrunner
+
+qcaas.service.host.default=http://localhost:8288/qcs/tws
 
 

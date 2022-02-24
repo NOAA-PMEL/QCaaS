@@ -6,38 +6,36 @@ package gov.noaa.pmel.qcaas.client;
 import java.io.BufferedReader;
 import java.io.Console;
 import java.io.File;
-import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.PrintWriter;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
 
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 
-import gov.noaa.pmel.qcaas.DataRow;
-import gov.noaa.pmel.qcaas.QcServiceData;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import gov.noaa.pmel.qcaas.QcWsUtils;
-import gov.noaa.pmel.qcaas.StandardName;
-import gov.noaa.pmel.qcaas.VariableDefinition;
 import gov.noaa.pmel.qcaas.ws.QcInvocationRequest;
 import gov.noaa.pmel.qcaas.ws.QcInvocationRequest.QcInvocationRequestBuilder;
+import gov.noaa.pmel.qcaas.ws.QcInvocationResponse;
 import gov.noaa.pmel.tws.client.impl.TwsClientImpl.NoopException;
 import gov.noaa.pmel.tws.util.ApplicationConfiguration;
 import gov.noaa.pmel.tws.util.StringUtils;
 import gov.noaa.pmel.tws.util.cli.CLClient;
 import gov.noaa.pmel.tws.util.cli.CLCommand;
 import gov.noaa.pmel.tws.util.cli.CLOption;
-import gov.noaa.pmel.tws.util.cli.CLOptionException;
 import gov.noaa.pmel.tws.util.cli.CLOptionValue;
 import gov.noaa.pmel.tws.util.cli.CLOptions;
-import gov.noaa.pmel.tws.util.cli.CommandProcessor;
 
 /**
  * @author kamb
@@ -47,10 +45,14 @@ public class QcClient extends CLClient {
 
     private static Logger logger;
     
-    private static final String DEFAULT_SERVICE_URL = "http://localhost:8288/qcs/tws/qc";
+    static final String DEFAULT_SERVICE_URL = "http://localhost:8288/qcs/tws/qc";
     
     private static CLOption opt_dataFile = CLOption.builder().name("data_file").flag("f").longFlag("datafile")
             .description("path to the data file").build();
+    private static CLOption opt_dataFields = CLOption.builder().name("data_fields").flag("d").longFlag("datafields")
+            .description("comma-separated list of data column header names to be sent for QC.").build();
+    private static CLOption opt_outputFile = CLOption.builder().name("output_file").flag("o").longFlag("output")
+            .description("path to response output file.").defaultValue("standard out").build();
     private static CLOption opt_serviceUrl = CLOption.builder().name("service_url").flag("s").longFlag("service")
             .description("URL base for QC service.").build();
     private static CLOption opt_qcTest = CLOption.builder().name("qc_test").flag("t").longFlag("test")
@@ -71,6 +73,7 @@ public class QcClient extends CLClient {
                                                 .command("qc")
                                                 .description("Invoke QC service on specified data.")
                                                 .option(opt_dataFile)
+                                                .option(opt_dataFields)
                                                 .option(opt_serviceUrl)
                                                 .option(opt_qcTest)
 //                                                .option(opt_noop)
@@ -121,6 +124,7 @@ public class QcClient extends CLClient {
             // checkOptions(command);  done in CLClient runCommand checkArgs()
             
             _clOptions = new CLOptions(command, optionValues, arguments);
+            System.out.println("clOptions:"+_clOptions);
             String serviceUrl = _clOptions.optionValue(opt_serviceUrl, DEFAULT_SERVICE_URL);
             URL serviceEndpoint = new URL(serviceUrl);
             
@@ -141,74 +145,75 @@ public class QcClient extends CLClient {
         }
     }
 
-
-    /**
-     * @param command
-     * @return
-     * @throws SecurityException 
-     * @throws NoSuchMethodException 
-     */
-    private Method getProcessingMethod(CLCommand command) {
-        String methodName = getMethodName(command);
-        Method processingMethod = null;
-        Class<?> thisClass = this.getClass();
-        try {
-            processingMethod = thisClass.getDeclaredMethod(methodName);
-        } catch (NoSuchMethodException nsx) {
-//            Method[] thisMethods = thisClass.getDeclaredMethods();
-            Class<?> superClass = thisClass.getSuperclass();
-            if ( CommandProcessor.class.isAssignableFrom(superClass)) {
-                try {
-                    processingMethod = superClass.getDeclaredMethod(methodName);
-                } catch (NoSuchMethodException ns2) {
-//                    Method[] superMethods = superClass.getDeclaredMethods();
-                    throw new IllegalStateException("No processing method \"" + methodName + 
-                                                    "\" found for command " + command.command() +
-                                                    " in either " + thisClass.getName() + " or " + 
-                                                    superClass.getName()); 
-                }
-            } else {
-                throw new IllegalStateException("No processing method \"" + methodName + 
-                                                "\" found for command " + command +
-                                                " in " + thisClass.getName());
-            }
-        }
-        return processingMethod;
-    }
-
-    /**
-     * @param command
-     * @return
-     */
-    private static String getMethodName(CLCommand command) {
-        String methodName = command.methodName();
-        if ( methodName == null ) {
-            String commandName = command.command();
-            char[] chars = ("do"+commandName).toCharArray();
-            chars[2] = String.valueOf(chars[2]).toUpperCase().charAt(0);
-            methodName = String.valueOf(chars);
-        }
-        return methodName;
-    }
-    
     public void doQc() throws Exception {
         logger.info("doQc");
         logger.debug(_clOptions);
         String test = _clOptions.get(opt_qcTest);
-        QcInvocationRequest request = buildInvocationRequest();
-        _wsClient.invokeQc(test, request);
+        String dataFileName = _clOptions.get(opt_dataFile);
+        String dataFields = _clOptions.get(opt_dataFields);
+        Collection<String> selectedFields = null;
+        if ( dataFields != null ) {
+            selectedFields = extractSelectedHeadNames(dataFields);
+        }
+        QcInvocationRequest request = buildInvocationRequest(dataFileName, selectedFields);
+        QcInvocationResponse response = _wsClient.invokeQc(test, request);
+        String outputFile = _clOptions.optionValue(opt_outputFile, null);
+        if ( outputFile != null ) {
+            try (PrintWriter out = new PrintWriter(new File(outputFile))) {
+                new ObjectMapper().writeValue(out, response);
+            }
+        } else {
+            new ObjectMapper().writeValue(System.out, response);
+        }
     }
 
     /**
+     * @param dataFields
+     * @return
+     */
+    private Collection<String> extractSelectedHeadNames(String dataFields) {
+        if ( dataFields == null || dataFields.isEmpty()) { return null; }
+        String[] parts = dataFields.split("[,;]");
+        Set<String> selectedNames = new TreeSet<>(new Comparator<String>() {
+            @Override
+            public int compare(String o1, String o2) {
+                if ( o1 == null || o1.isEmpty() || 
+                     o2 == null || o1.isEmpty()) { return -1; }
+                String s1 = o1.toLowerCase();
+                if ( s1.indexOf('_') > 0 ) {
+                    s1 = s1.substring(0,  s1.lastIndexOf('_'));
+                }
+                String s2 = o2.toLowerCase();
+                if ( s2.indexOf('_') > 0 ) {
+                    s2 = s2.substring(0,  s2.lastIndexOf('_'));
+                }
+                return s1.compareTo(s2);
+            }
+        });
+        for (String field : parts) {
+            if ( field != null && ! field.isEmpty()) {
+                selectedNames.add(field);
+            }
+        }
+        return selectedNames;
+    }
+
+    /**
+     * @param dataFile 
+     * @param selectedFields 
      * @return
      * @throws Exception 
      */
-    private QcInvocationRequest buildInvocationRequest() throws Exception {
-        QcInvocationRequestBuilder req = QcInvocationRequest.builder();
-        String fileName = _clOptions.get(opt_dataFile);
-        File dataFile = new File(fileName);
-        req.data(QcWsUtils.readFileData(dataFile));
-        return req.build();
+    private QcInvocationRequest buildInvocationRequest(String dataFileName, Collection<String> selectedFields) throws Exception {
+        if ( dataFileName != null ) {
+            File dataFile = new File(dataFileName);
+            QcInvocationRequestBuilder req = QcInvocationRequest.builder();
+            req.data(QcWsUtils.readFileData(dataFile, selectedFields));
+            return req.build();
+        } else {
+            QcInvocationRequest req = new ObjectMapper().readValue(System.in, QcInvocationRequest.class);
+            return req;
+        }
     }
 
     /**

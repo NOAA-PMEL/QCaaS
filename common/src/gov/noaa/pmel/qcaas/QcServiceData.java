@@ -21,7 +21,7 @@ import lombok.ToString;
  *
  */
 @Data
-@Builder
+@Builder(toBuilder=true)
 @ToString
 @Setter(AccessLevel.NONE)
 @NoArgsConstructor

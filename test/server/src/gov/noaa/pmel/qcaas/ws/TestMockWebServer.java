@@ -3,7 +3,11 @@ package gov.noaa.pmel.qcaas.ws;
  * 
  */
 
+import gov.noaa.pmel.qcaas.QcServiceWS;
+import gov.noaa.pmel.tws.util.ApplicationConfiguration;
 import gov.noaa.pmel.tws.util.Logging;
+import gov.noaa.pmel.tws.util.config.Configuration;
+import gov.noaa.pmel.tws.util.config.ConfigurationProperty;
 
 import java.util.Arrays;
 import java.util.EnumSet;
@@ -23,6 +27,7 @@ import org.eclipse.jetty.servlet.DefaultServlet;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
 
+import com.sun.jersey.api.core.ResourceConfig;
 import com.sun.jersey.spi.container.servlet.ServletContainer;
 
 /**
@@ -103,7 +108,17 @@ public class TestMockWebServer {
 	public static void main(String[] args) {
 		
 		System.setProperty("configuration_debug", "true");
-        Logging.Configure("qcaas");
+        Logging.Configure(QcServiceWS.QC_CONFIGURATION_MODULE);
+        try {
+            ApplicationConfiguration.Initialize(QcServiceWS.QC_CONFIGURATION_MODULE);
+            Configuration config = ApplicationConfiguration.getConfiguration();
+            ConfigurationProperty check = config.getConfigProperty("qcaas.qc.check.test", null);
+            System.out.println("Application config check:"+ check);
+        } catch (Throwable t) {
+            t.printStackTrace();
+            System.exit(-1);
+        }
+
 //        Logger logger = Logging.getLogger(TestMockWebServer.class);
 //        logger.debug("Here I am!  Yes it's me.");
 //        for (Enumeration loggers=LogManager.getCurrentLoggers(); loggers.hasMoreElements(); )  {
@@ -161,7 +176,7 @@ public class TestMockWebServer {
 		HandlerCollection contexts = new HandlerList();
 		 
 		ServletHolder sh = new ServletHolder(ServletContainer.class);
-		String location = "argo/files/tmp";
+		String location = "tmp";
 		int maxFileSize = 524288000;
 		int maxRequestSize = 554288000;
 		int fileSizeThreshold = 500000;
@@ -185,7 +200,7 @@ public class TestMockWebServer {
 		
 //		jerseyContext.addServlet(DefaultServlet.class, "/*");
         ServletHolder holderHome = new ServletHolder("static-home", DefaultServlet.class);
-        holderHome.setInitParameter("resourceBase","/Users/kamb/workspace/QCaaS");
+        holderHome.setInitParameter("resourceBase","/Users/kamb/workspace/qcaas");
         holderHome.setInitParameter("dirAllowed","true");
         holderHome.setInitParameter("gzip", "true");
         holderHome.setInitParameter("pathInfoOnly","true");

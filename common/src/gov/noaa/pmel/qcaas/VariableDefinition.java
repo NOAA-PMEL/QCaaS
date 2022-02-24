@@ -20,7 +20,7 @@ import lombok.Singular;
  *
  */
 @Data
-@Builder
+@Builder(toBuilder=true)
 @Setter(AccessLevel.NONE)
 @NoArgsConstructor
 @AllArgsConstructor

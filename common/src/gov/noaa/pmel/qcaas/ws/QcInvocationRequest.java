@@ -34,14 +34,14 @@ import lombok.Setter;
 @XmlAccessorType(XmlAccessType.FIELD)
 public class QcInvocationRequest {
 
-    @JsonProperty("requestId")
     @Builder.Default
+    @JsonProperty("requestId")
     private String _requestId = String.valueOf(System.currentTimeMillis());
     
     @JsonIgnore
     private TestInfo _test;
     
-    @JsonIgnore
+    @JsonProperty("configuration")
     private QcTestConfiguration _configuration;
     
     @JsonProperty("data")

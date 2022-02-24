@@ -18,3 +18,5 @@
  Finally, properties may also be specified as environment variables and as command line definitions as -D<dotted.property.name>=<value>.
  Environmental variables override configuration file properties, and command line-specified properties have the highest precedence.
  
+ In general, all (non-secret) properties should be specified in the main <module-name>.props file, which is maintained under source control.
+ Machine- and environment-specific config files may or may not be maintained under source control, provided they do not contain secrets.
