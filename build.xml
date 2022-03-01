@@ -1,40 +1,128 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<project default="build_war" name="Create Artifacts for qcaas Project ">
+<project default="all" name="Create Artifacts for qcaas Project ">
     <!--this file was created by Eclipse Runnable JAR Export Wizard-->
     <!--ANT 1.7 is required                                        -->
     <!--define folder properties-->
-    <property name="dir.buildfile" value="."/>
-    <property name="dir.workspace" value="${dir.buildfile}/.."/>
-    <property name="dir.jarfile" value="${dir.buildfile}/qcclient"/>
-    <target name="create_client_jar">
+    <property name="this" value="."/>
+    <property name="WebContent" value="${this}/WebContent"/>
+    <property name="lombok" value="${this}/lib-dev/lombok_1.18.22.jar" />
+    <property name="servlet-api" value="${this}/lib-dev/servlet-api-3.1.jar" />
+    <property name="dir.workspace" value="${this}/.."/>
+    <property name="dir.builddir" value="${this}/build"/>
+    <property name="dir.jarfile" value="${this}/qcclient"/>
+    <property name="client.classes" value="${dir.builddir}/client/classes"/>
+    <property name="client.libs" value="${this}/client/lib"/>
+    <property name="common.classes" value="${dir.builddir}/common/classes"/>
+    <property name="common.libs" value="${this}/common/lib"/>
+    <property name="server.classes" value="${dir.builddir}/server/classes"/>
+    <property name="server.libs" value="${WebContent}/WEB-INF/lib"/>
+    <target name="clean-client">
+        <delete>
+        	<fileset dir="${client.classes}">
+            	 <include name="**/*" />
+        	</fileset>
+        </delete>
+	</target>
+    <target name="clean-common">
+        <delete>
+        	<fileset dir="${common.classes}">
+            	 <include name="**/*" />
+        	</fileset>
+        </delete>
+	</target>
+    <target name="clean-server">
+        <delete>
+        	<fileset dir="${server.classes}">
+            	 <include name="**/*" />
+        	</fileset>
+        </delete>
+	</target>
+    <target name="clean-all" depends="clean-client, clean-common, clean-server"/>
+    <target name="clean" depends="clean-all"/>
+    <target name="compile-common" >
+        <mkdir dir="${common.classes}"/>
+        <javac srcdir="common/src" destdir="${common.classes}" source="1.8" includeantruntime="false">
+            <classpath>
+                <pathelement location="${lombok}"/>
+                <fileset dir="${common.libs}">
+                	 <include name="**/*.jar" />
+                </fileset>
+                <fileset dir="${server.libs}">
+                	 <include name="**/*.jar" />
+                </fileset>
+            </classpath>
+        </javac>
+	</target>
+    <target name="compile-client" depends="compile-common">
+        <mkdir dir="${client.classes}"/>
+        <javac srcdir="client/src" destdir="${client.classes}" source="1.8" includeantruntime="false">
+            <classpath>
+                <pathelement location="${lombok}"/>
+                <pathelement path="${common.classes}"/>
+                <fileset dir="${server.libs}">
+                	 <include name="**/*.jar" />
+                </fileset>
+                <fileset dir="${common.libs}">
+                	 <include name="**/*.jar" />
+                </fileset>
+                <fileset dir="${client.libs}">
+                	 <include name="**/*.jar" />
+                </fileset>
+            </classpath>
+        </javac>
+        <copy todir="${client.classes}/config">
+            <fileset dir="client/src/config">
+                <include name="*" />
+            </fileset>
+        </copy>
+	</target>
+    <target name="compile-server" depends="compile-common">
+        <mkdir dir="${server.classes}"/>
+        <javac srcdir="server/src" destdir="${server.classes}" source="1.8" includeantruntime="false">
+            <classpath>
+                <pathelement location="${lombok}"/>
+                <pathelement location="${servlet-api}"/>
+                <pathelement path="${common.classes}"/>
+                <fileset dir="${server.libs}">
+                	 <include name="**/*.jar" />
+                </fileset>
+                <fileset dir="${common.libs}">
+                	 <include name="**/*.jar" />
+                </fileset>
+            </classpath>
+        </javac>
+	</target>
+    <target name="compile-all" depends="compile-client, compile-server"/>
+	<target name="all" depends="client-jar, build-war" />
+    <target name="client-jar" depends="compile-client">
         <jar destfile="${dir.jarfile}/qcaas-client.jar" filesetmanifest="mergewithoutmain">
             <manifest>
                 <attribute name="Main-Class" value="gov.noaa.pmel.qcaas.client.QcClient"/>
                 <attribute name="Class-Path" value="."/>
             </manifest>
-            <fileset dir="${dir.buildfile}/build/client/classes"/>
-            <fileset dir="${dir.buildfile}/build/common/classes"/>
-            <zipfileset excludes="META-INF/*.SF" src="${dir.buildfile}/WebContent/WEB-INF/lib/jackson-annotations-2.9.8.jar"/>
-            <zipfileset excludes="META-INF/*.SF" src="${dir.buildfile}/WebContent/WEB-INF/lib/jackson-core-2.9.8.jar"/>
-            <zipfileset excludes="META-INF/*.SF" src="${dir.buildfile}/WebContent/WEB-INF/lib/jackson-databind-2.9.8.jar"/>
-            <zipfileset excludes="META-INF/*.SF" src="${dir.buildfile}/WebContent/WEB-INF/lib/jackson-jaxrs-base-2.9.8.jar"/>
-            <zipfileset excludes="META-INF/*.SF" src="${dir.buildfile}/WebContent/WEB-INF/lib/jackson-jaxrs-json-provider-2.9.8.jar"/>
-            <zipfileset excludes="META-INF/*.SF" src="${dir.buildfile}/WebContent/WEB-INF/lib/jersey-bundle-1.19.1.jar"/>
-            <zipfileset excludes="META-INF/*.SF" src="${dir.buildfile}/WebContent/WEB-INF/lib/org.json.stleary.jar"/>
-            <zipfileset excludes="META-INF/*.SF" src="${dir.buildfile}/common/lib/log4j-1.2.17.jar"/>
-            <zipfileset excludes="META-INF/*.SF" src="${dir.buildfile}/common/lib/tws_pkauth.jar"/>
-            <zipfileset excludes="META-INF/*.SF" src="${dir.buildfile}/common/lib/tws_util.jar"/>
-            <zipfileset excludes="META-INF/*.SF" src="${dir.buildfile}/client/lib/tws_client.jar"/>
+            <fileset dir="${this}/build/client/classes"/>
+            <fileset dir="${this}/build/common/classes"/>
+            <zipfileset excludes="META-INF/*.SF" src="${this}/WebContent/WEB-INF/lib/jackson-annotations-2.9.8.jar"/>
+            <zipfileset excludes="META-INF/*.SF" src="${this}/WebContent/WEB-INF/lib/jackson-core-2.9.8.jar"/>
+            <zipfileset excludes="META-INF/*.SF" src="${this}/WebContent/WEB-INF/lib/jackson-databind-2.9.8.jar"/>
+            <zipfileset excludes="META-INF/*.SF" src="${this}/WebContent/WEB-INF/lib/jackson-jaxrs-base-2.9.8.jar"/>
+            <zipfileset excludes="META-INF/*.SF" src="${this}/WebContent/WEB-INF/lib/jackson-jaxrs-json-provider-2.9.8.jar"/>
+            <zipfileset excludes="META-INF/*.SF" src="${this}/WebContent/WEB-INF/lib/jersey-bundle-1.19.1.jar"/>
+            <zipfileset excludes="META-INF/*.SF" src="${this}/WebContent/WEB-INF/lib/org.json.stleary.jar"/>
+            <zipfileset excludes="META-INF/*.SF" src="${this}/common/lib/log4j-1.2.17.jar"/>
+            <zipfileset excludes="META-INF/*.SF" src="${this}/common/lib/tws_pkauth.jar"/>
+            <zipfileset excludes="META-INF/*.SF" src="${this}/common/lib/tws_util.jar"/>
+            <zipfileset excludes="META-INF/*.SF" src="${this}/client/lib/tws_client.jar"/>
         </jar>
     </target>
-	<target name="build_war">
-		<war destfile="qcaas.war" webxml="WebContent/WEB-INF/web.xml">
-            <classes dir="${dir.buildfile}/build/server/classes"/>
-            <classes dir="${dir.buildfile}/build/common/classes"/>
-			<fileset dir="${dir.buildfile}/WebContent">
+	<target name="build-war" depends="compile-server">
+		<war destfile="qcaas.war" webxml="${WebContent}/WEB-INF/web.xml">
+            <classes dir="${server.classes}"/>
+            <classes dir="${common.classes}"/>
+			<fileset dir="${WebContent}">
 				<include name="**/*.*"/>
 			</fileset>
-			<lib dir="${dir.buildfile}/common/lib"/>
+			<lib dir="${common.libs}"/>
 		</war>
 	</target>
 </project>

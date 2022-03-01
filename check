@@ -1,0 +1,14 @@
+
+PORT=8288
+
+if [ $1 ] ; then
+	PORT=$1
+fi
+
+java -jar qcclient/qcaas-client.jar qc \
+	-f test/data/33RO20150410.exc_units.csv \
+	-d "ctdprs,ctdsalinty,salnty,ctdoxy" \
+	-s qcrequest-latest.js -o qcresponse.js \
+	-t random \
+	-u http://localhost:${PORT}/qcaas/ws/qc  
+

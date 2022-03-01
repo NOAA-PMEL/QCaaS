@@ -1,7 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <web-app xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://java.sun.com/xml/ns/javaee" xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_3_0.xsd" id="WebApp_ID" version="3.0">
   <display-name>qcaas</display-name>
-  <!--
+  <!-- Uncomment to support digitally-signed messages.  
+       Must also be enabled in qcaas configuration, as well as in the client.
+       Private keys and appropriate certificates must also be installed.
   <filter>
     <filter-name>request-verifier</filter-name>
     <filter-class>gov.noaa.pmel.qcaas.ws.SignedMsgVerifier</filter-class>
@@ -26,15 +28,17 @@
       <param-name>com.sun.jersey.api.json.POJOMappingFeature</param-name>
       <param-value>true</param-value>
     </init-param>
+    <!--  Uncomment to support upload of files
     <multipart-config>
-      <location>/home/data/web/tmp</location>
+      <location>temp</location> <!-X- tomcat default temp dir. -X->
       <max-file-size>524288000</max-file-size>
       <file-size-threshold>1024000</file-size-threshold>
     </multipart-config>
+     -->
   </servlet>
   <servlet-mapping>
     <servlet-name>jersey</servlet-name>
-    <url-pattern>/tws/*</url-pattern>
+    <url-pattern>/ws/*</url-pattern> <!-- REST Web Service context -->
   </servlet-mapping>
   
     <listener>
