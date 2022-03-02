@@ -1,0 +1,9 @@
+#
+# operating environment-specific configuration
+# operating environment is specified in module_name.props as module_name.env=<env_name>
+# This can be over-ridden in machine_name.module_name.props
+#
+
+qcaas.request.validate=false
+
+qcaas.qc.script.qcpy=qc.py

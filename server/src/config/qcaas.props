@@ -7,8 +7,12 @@
 # whether messages are expected to be digitally signed and validated
 # qcaas.request.validate=false
 
-qcaas.qc.script=bin/qcrunner
+qcaas.service.host.default=http://localhost:8288/qcaas/ws/qc
 
-qcaas.service.host.default=http://localhost:8288/qcs/tws
+# location of test scripts
+# default location: <tomcat-installation-root>/content/qcaas/bin
+# qcaas.qc.script.dir=content/qcaas/bin
 
+# default no-named-test script
+qcaas.qc.script=qcrunner
 

@@ -1,0 +1,8 @@
+# host machine-specific configuration goes in the machine_name.module_name.props file
+# renamed appropriately.
+
+# machine-specific specification of operating environment
+# specifies a file name eg dev.module_name.props
+qcaas.env=dev
+
+qcaas.qc.script.qcpy=qc.py
