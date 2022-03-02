@@ -1,0 +1,54 @@
+Port(s) : 
+	conf/server.xml :
+		main listening port: line 69 (currently) :     <Connector port="8573" protocol="HTTP/1.1"
+			can change 8573 to whatever desired
+		shutdown port : line 22 (currently) : <Server port="8575" shutdown="SHUTDOWN">
+			used to signal server shutdown
+	bin/debug + bin/setenv.sh
+		JPDA (remote debug connection) port : 8501
+		Should only be in one place, but if you don't use bin/debug to start, it wouldn't be properly set.
+
+URL: http[s]://<hostname>:<port>//<servlet_path>/<context_path>/<application_path>/<test_name>
+eg : http://matisse:8573/qcaas/ws/qc/range
+
+Servlet path: [qccas]
+	webapps/<war_name>.war
+	webapps/qcaas.war
+		If extra levels necessary, add path levels separated by # : webapps/<lvl0#lvl1[...]>.war
+
+Context Path: [ws]
+	webapps/<war_name>/WEB-INF/web.xml
+
+Application Path: [qc]
+	hard-coded : gov.noaa.pmel.qcaas.ws.QcServiceResource
+
+Script location:
+	default: [tomcat-install-root]/content/qcaas/bin
+
+QCaaS configuration properties files: content/qcaas/config
+	The main thing that needs to be specified is the test name -> script mapping
+	as qcaas.qc.script.<test_name>=<script_name>
+
+	Typically this would be specified either in machine- or environment-specific config file.
+
+	see README.config for configuration system information.
+
+Customizations:
+	Added webapps/ROOT/403.html, 404.html, error.html, index.html
+	to remove Tomcat defaults to now reveal tomcat version
+	MUST also update conf/web.xml to make mappings
+
+Tomcat manager app:
+	GUI manager app is available at http://localhost:<port>/manager/html
+	(Normally accessible from root path, but no longer with above index.html replacement.)
+	Currently only accessible from localhost. If you need remote access, 
+	you will have to specify remote host IP address in the webapps/manager/META-INF/context.xml Valve.
+
+	username/password specified in [tomcat]/conf/tomcat-users.xml
+
+Startup: either:
+	$ bin/startup.sh  - normal operation
+		> bin/startup.bat - windows
+	$ bin/debug - debug operation : available for Java Remote Debugging connection
+		> no windows version  yet.  Just have to create a bin/debug.bat file.
+	
