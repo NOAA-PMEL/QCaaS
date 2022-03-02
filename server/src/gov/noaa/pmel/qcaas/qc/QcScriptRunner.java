@@ -5,27 +5,21 @@ package gov.noaa.pmel.qcaas.qc;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Random;
 
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import gov.noaa.pmel.qcaas.DataRow;
-import gov.noaa.pmel.qcaas.DataType;
 import gov.noaa.pmel.qcaas.QcServiceData;
-import gov.noaa.pmel.qcaas.QcServiceData.QcServiceDataBuilder;
 import gov.noaa.pmel.qcaas.QcServiceException;
-import gov.noaa.pmel.qcaas.StandardName;
-import gov.noaa.pmel.qcaas.VariableDefinition;
 import gov.noaa.pmel.qcaas.ws.QcInvocationRequest;
 import gov.noaa.pmel.qcaas.ws.QcInvocationResponse;
-import gov.noaa.pmel.qcaas.ws.QcInvocationResponse.QcInvocationResponseBuilder;
 import gov.noaa.pmel.qcaas.ws.QcMetadataResponse;
 import gov.noaa.pmel.tws.util.ApplicationConfiguration;
+import gov.noaa.pmel.tws.util.ApplicationConfiguration.PropertyNotFoundException;
+import gov.noaa.pmel.tws.util.FileUtils;
+import gov.noaa.pmel.tws.util.StringUtils;
 import gov.noaa.pmel.tws.util.process.ScriptRunner;
 
 /**
@@ -38,14 +32,21 @@ public class QcScriptRunner implements QcServiceIfc {
 
     private static final String RANDOM = "random";
     private static final String SCRIPT = "script";
+    private static final String STANDARD_SCRIPTS_DIR = "content/qcaas/bin/";
     private String _testName = RANDOM;
+    private String SCRIPTS_DIR;
     /**
      * 
      */
-    public QcScriptRunner() {
+    private QcScriptRunner() {
+        SCRIPTS_DIR = ApplicationConfiguration.getProperty("qcaas.qc.script.dir", STANDARD_SCRIPTS_DIR);
+        if ( ! SCRIPTS_DIR.endsWith("/")) {
+            SCRIPTS_DIR += "/";
+        }
     }
 
     public QcScriptRunner(String testName) {
+        this();
         _testName = testName;
     }
 
@@ -77,25 +78,69 @@ public class QcScriptRunner implements QcServiceIfc {
 
     public QcInvocationResponse runQcScript(QcInvocationRequest request) throws QcServiceException {
         logger.info(request);
-        String[] scriptArgs = new String[2];
+        String[] scriptArgs = new String[4];
         try {
-            String qcScript = ApplicationConfiguration.getProperty("qcaas.qc.script", "bin/qcrunner");
+            String qcScript = getQcScript(request);
             logger.info("Running QC script: " + qcScript);
             File dataFile = writeDataFile(request);
-            scriptArgs[0] = dataFile.getAbsolutePath();
+            int idx=0;
+            scriptArgs[idx++] = "-f";
+            scriptArgs[idx++] = dataFile.getAbsolutePath();
+            scriptArgs[idx++] = "-o";
             File flaggedFile = getFlaggedFile(request, dataFile);
-            scriptArgs[1] = flaggedFile.getAbsolutePath();
+            scriptArgs[idx++] = flaggedFile.getAbsolutePath();
             File outputFile = getOutputFile(request, dataFile);
             File errorFile = getErrorFile(request, dataFile);
             ScriptRunner runner = new ScriptRunner(new File(qcScript), outputFile, errorFile);
             int exit = runner.runScript(scriptArgs);
-            QcInvocationResponse response = QcInvocationResponse.builder()
-                    .flaggedData(getFlaggedData(flaggedFile))
-                    .build();
-            return response;
+            if ( exit == 0 ) {
+                QcInvocationResponse response = getFlaggedData(flaggedFile);
+    //                    QcInvocationResponse.builder()
+    //                    .flaggedData(getFlaggedData(flaggedFile))
+    //                    .build();
+                return response;
+            } else {
+                String errorOut = FileUtils.readFully(runner.getErrorFile());
+                String errMsg = new StringBuilder()
+                        .append("Non zero result (")
+                        .append(exit)
+                        .append(") running test " )
+                        .append( _testName )
+                        .append( " on request " )
+                        .append( request.requestId())
+                        .append("\nError Output:")
+                        .append(errorOut)
+                        .toString();
+                throw new IllegalStateException(errMsg);
+            }
         } catch (Exception ex) {
+            logger.warn(ex, ex);
             throw new QcServiceException(ex);
         }
+    }
+
+    /**
+     * @param request
+     * @return
+     * @throws PropertyNotFoundException 
+     */
+    private String getQcScript(QcInvocationRequest request) {
+        String baseScriptNameProperty = "qcaas.qc.script";
+        String scriptNameProperty = baseScriptNameProperty + 
+                (StringUtils.emptyOrNull(_testName) ? "" : "." + _testName);
+        String scriptName = ApplicationConfiguration.getProperty(scriptNameProperty, null);
+        if ( StringUtils.emptyOrNull(scriptName)) {
+            try {
+                scriptName = ApplicationConfiguration.getProperty(baseScriptNameProperty);
+            } catch (PropertyNotFoundException ex) {
+                throw new RuntimeException("No QC script defined.  You must specify qcaas.qc.script or qcaas.qc.script.[test_name] configuration property.");
+            }
+        }
+        if ( ! scriptName.startsWith("/") &&
+             ! scriptName.startsWith(SCRIPTS_DIR)) {
+            scriptName = SCRIPTS_DIR + scriptName;
+        }
+        return scriptName;
     }
 
     /**
@@ -103,8 +148,8 @@ public class QcScriptRunner implements QcServiceIfc {
      * @return
      * @throws IOException 
      */
-    private QcServiceData getFlaggedData(File flaggedFile) throws IOException {
-        QcServiceData flaggedData = new ObjectMapper().readValue(flaggedFile, QcServiceData.class);
+    private QcInvocationResponse getFlaggedData(File flaggedFile) throws IOException {
+        QcInvocationResponse flaggedData = new ObjectMapper().readValue(flaggedFile, QcInvocationResponse.class);
         return flaggedData;
     }
 
@@ -144,7 +189,7 @@ public class QcScriptRunner implements QcServiceIfc {
      */
     private File writeDataFile(QcInvocationRequest request) throws IOException {
         File dataFile = File.createTempFile("qc_", ".data");
-        new ObjectMapper().writeValue(dataFile, request.data());
+        new ObjectMapper().writeValue(dataFile, request); // .data());
         return dataFile;
     }
 

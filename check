@@ -1,14 +1,26 @@
 
+hazy=https://data.pmel.noaa.gov/sdig/qcaas/ws/qc
 PORT=8288
+HOST=localhost
+TEST=echo
+
+DATA_FILE=test/data/33RO20150410.exc_units.csv
+
+# DATA_FILE=/Users/kamb/workspace/oa_dashboard_test_data/typechecker/33RO20150410.exc.csv
 
 if [ $1 ] ; then
 	PORT=$1
 fi
 
+echo Running test $TEST at ${HOST}:${PORT} with $DATA_FILE
+
 java -jar qcclient/qcaas-client.jar qc \
-	-f test/data/33RO20150410.exc_units.csv \
-	-d "ctdprs,ctdsalinty,salnty,ctdoxy" \
-	-s qcrequest-latest.js -o qcresponse.js \
-	-t random \
-	-u http://localhost:${PORT}/qcaas/ws/qc  
+	-f ${DATA_FILE} \
+	-d "ctdsal,salnty,ctdoxy,oxygen" \
+	-a "DATE,TIME,LATITUDE,LONGITUDE,DEPTH,CTDPRS" \
+	-s qcrequest-check.js -o qcresponse-check.js \
+	-t ${TEST} \
+	-u http://${HOST}:${PORT}/qcaas/ws/qc  
+#	-u $hazy
+#	-u http://${HOST}:${PORT}/qcaas/ws/qc  
 

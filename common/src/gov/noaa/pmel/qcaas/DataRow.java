@@ -25,8 +25,8 @@ import lombok.ToString;
 public class DataRow {
 
     @NonNull
-    @JsonProperty("row_number")
-    private Integer _rowNum;
+    @JsonProperty("row_id")
+    private String _rowId;
     
     @JsonProperty("values")
     @Singular("addValue")

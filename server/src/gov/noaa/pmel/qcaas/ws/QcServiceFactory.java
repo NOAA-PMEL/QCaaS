@@ -3,6 +3,9 @@
  */
 package gov.noaa.pmel.qcaas.ws;
 
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
+
 import org.apache.log4j.Logger;
 
 import gov.noaa.pmel.qcaas.qc.QcServiceIfc;
@@ -31,10 +34,18 @@ public class QcServiceFactory {
     {
         Class<?> serviceClass = getServiceClass(testName);
         try {
-            QcServiceIfc impl = (QcServiceIfc)serviceClass.newInstance();
+            QcServiceIfc impl;
+            try {
+                Constructor<QcServiceIfc> constructor = 
+                    (Constructor<QcServiceIfc>) serviceClass.getConstructor(String.class);
+                impl = constructor.newInstance(testName);
+            } catch (NoSuchMethodException nome) {
+                impl = (QcServiceIfc)serviceClass.newInstance();
+            }
             logger.debug("Created service impl " + impl + " for test: " + testName);
             return impl;
-        } catch (InstantiationException | IllegalAccessException iax) {
+        } catch (InstantiationException | IllegalAccessException  | 
+                 IllegalArgumentException | InvocationTargetException iax) {
             throw new IllegalStateException("Exception creating QcService instance of " + serviceClass.getName(), iax);
         }
     }

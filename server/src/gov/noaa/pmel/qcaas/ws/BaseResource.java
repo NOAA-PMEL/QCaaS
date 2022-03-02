@@ -61,7 +61,7 @@ public class BaseResource {
 		String req = httpRequest.getRequestURI().toString();
 		logger.debug("bad:"+req);
 		System.out.println("bad:"+req);
-		return Response.status(Status.NOT_FOUND).entity(req).build();
+		return Response.status(Status.NOT_FOUND).entity("bad:"+req).build();
 	}
 	
 //	public static File writeFile(Part part, File dest) throws IOException {

@@ -21,7 +21,9 @@ import gov.noaa.pmel.qcaas.DataType;
 import gov.noaa.pmel.qcaas.QcServiceData;
 import gov.noaa.pmel.qcaas.QcServiceData.QcServiceDataBuilder;
 import gov.noaa.pmel.qcaas.QcServiceException;
+import gov.noaa.pmel.qcaas.ServiceInfo;
 import gov.noaa.pmel.qcaas.StandardName;
+import gov.noaa.pmel.qcaas.TestInfo;
 import gov.noaa.pmel.qcaas.VariableDefinition;
 import gov.noaa.pmel.qcaas.ws.QcInvocationRequest;
 import gov.noaa.pmel.qcaas.ws.QcInvocationResponse;
@@ -43,9 +45,9 @@ public class QcServiceImpl implements QcServiceIfc {
     private String _testName = RANDOM;
     /**
      * 
-     */
     public QcServiceImpl() {
     }
+     */
 
     public QcServiceImpl(String testName) {
         _testName = testName;
@@ -74,11 +76,14 @@ public class QcServiceImpl implements QcServiceIfc {
      */
     @Override
     public QcInvocationResponse performQc(QcInvocationRequest request) throws QcServiceException {
-        if ( SCRIPT.equals(_testName)) {
-            return runQcScript(request);
+        QcInvocationResponse response;
+        if ( RANDOM.equals(_testName)) {
+            response = randomFlagging(request);
         } else {
-            return randomFlagging(request);
+            response = runQcScript(request);
         }
+        response.testInfo(TestInfo.builder().name(_testName).build());
+        return response;
     }
     public QcInvocationResponse rangeChecking(QcInvocationRequest request) throws QcServiceException {
         logger.info(request);
@@ -86,7 +91,7 @@ public class QcServiceImpl implements QcServiceIfc {
             QcInvocationResponseBuilder<?, ?> response = QcInvocationResponse.builder();
             QcServiceDataBuilder responseData = QcServiceData.builder();
             QcServiceData requestData = request.data();
-            List<VariableDefinition> requestVariables = requestData.variables();
+            List<VariableDefinition> requestVariables = requestData.data_variables();
             List<VariableDefinition> flagVariables = new ArrayList<VariableDefinition>(requestVariables.size()*2);
             for (VariableDefinition v : requestVariables) {
 //                flagVariables.add(v);
@@ -99,7 +104,7 @@ public class QcServiceImpl implements QcServiceIfc {
             List<VariableDefinition> responseVariables = new ArrayList<VariableDefinition>(requestVariables.size()*2);
             responseVariables.addAll(requestVariables);
             responseVariables.addAll(flagVariables);
-            responseData.variables(responseVariables);
+            responseData.data_variables(responseVariables);
             for (DataRow dataRow : requestData.rows()) {
                 DataRow.DataRowBuilder responseRow = dataRow.toBuilder();
                 for (int i = 0; i < dataRow.size(); i++) {
@@ -110,7 +115,7 @@ public class QcServiceImpl implements QcServiceIfc {
                 }
                 responseData.addRow(responseRow.build());
             }
-            response.flaggedData(responseData.build());
+            response.data(responseData.build());
             return response.build();
         } catch (Exception ex) {
             throw new QcServiceException(ex);
@@ -161,13 +166,15 @@ public class QcServiceImpl implements QcServiceIfc {
         return FLAG_NOT_CHECKED;
     }
 
-    public QcInvocationResponse randomFlagging(QcInvocationRequest request) throws QcServiceException {
+    public static QcInvocationResponse randomFlagging(QcInvocationRequest request) throws QcServiceException {
         logger.info(request);
         try {
             QcInvocationResponseBuilder<?, ?> response = QcInvocationResponse.builder();
+            response.requestId(request.requestId());
+            response.configuration(request.configuration());
             QcServiceDataBuilder responseData = QcServiceData.builder();
             QcServiceData requestData = request.data();
-            List<VariableDefinition> requestVariables = requestData.variables();
+            List<VariableDefinition> requestVariables = requestData.data_variables();
             List<VariableDefinition> flagVariables = new ArrayList<VariableDefinition>(requestVariables.size()*2);
             for (VariableDefinition v : requestVariables) {
 //                flagVariables.add(v);
@@ -180,7 +187,7 @@ public class QcServiceImpl implements QcServiceIfc {
             List<VariableDefinition> responseVariables = new ArrayList<VariableDefinition>(requestVariables.size()*2);
             responseVariables.addAll(requestVariables);
             responseVariables.addAll(flagVariables);
-            responseData.variables(responseVariables);
+            responseData.data_variables(responseVariables);
             for (DataRow dataRow : requestData.rows()) {
                 DataRow.DataRowBuilder responseRow = dataRow.toBuilder();
                 for (int i = 0; i < dataRow.size(); i++) {
@@ -191,7 +198,7 @@ public class QcServiceImpl implements QcServiceIfc {
                 }
                 responseData.addRow(responseRow.build());
             }
-            response.flaggedData(responseData.build());
+            response.data(responseData.build());
             return response.build();
         } catch (Exception ex) {
             throw new QcServiceException(ex);
@@ -209,6 +216,12 @@ public class QcServiceImpl implements QcServiceIfc {
     }
 
     public QcInvocationResponse runQcScript(QcInvocationRequest request) throws QcServiceException {
+        QcScriptRunner runner = new QcScriptRunner(_testName);
+        QcInvocationResponse response = runner.runQcScript(request);
+        return response;
+    }
+    /* 
+    public QcInvocationResponse _runQcScript(QcInvocationRequest request) throws QcServiceException {
         logger.info(request);
         String[] scriptArgs = new String[2];
         try {
@@ -223,23 +236,24 @@ public class QcServiceImpl implements QcServiceIfc {
             ScriptRunner runner = new ScriptRunner(new File(qcScript), outputFile, errorFile);
             int exit = runner.runScript(scriptArgs);
             QcInvocationResponse response = QcInvocationResponse.builder()
-                    .flaggedData(getFlaggedData(flaggedFile))
+                    .data(getFlaggedData(flaggedFile))
                     .build();
             return response;
         } catch (Exception ex) {
             throw new QcServiceException(ex);
         }
     }
+    */
 
     /**
      * @param outputFile
      * @return
      * @throws IOException 
-     */
     private QcServiceData getFlaggedData(File flaggedFile) throws IOException {
         QcServiceData flaggedData = new ObjectMapper().readValue(flaggedFile, QcServiceData.class);
         return flaggedData;
     }
+     */
 
     /**
      * @param request

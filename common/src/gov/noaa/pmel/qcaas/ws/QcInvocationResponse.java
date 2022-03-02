@@ -6,6 +6,8 @@ package gov.noaa.pmel.qcaas.ws;
 import javax.xml.bind.annotation.XmlRootElement;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import gov.noaa.pmel.qcaas.QcServiceData;
@@ -30,16 +32,7 @@ import lombok.experimental.SuperBuilder;
 @XmlRootElement
 public class QcInvocationResponse extends QcServiceResponse {
     
-    @JsonIgnore
-    private ServiceInfo _service;
-    
-    @JsonIgnore
-    private TestInfo _test;
-
-    @JsonProperty("configuration")
-    private QcTestConfiguration _configuration;
-    
-    @JsonProperty("flaggedData")
-    private QcServiceData _flaggedData;
+    @JsonProperty("data")
+    private QcServiceData _data;
 
 }

@@ -9,6 +9,7 @@ import java.io.FileReader;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 import org.apache.log4j.LogManager;
@@ -29,17 +30,27 @@ public class QcWsUtils {
         /**
      * @param dataFields 
          * @return
-     */
+    // Special case to send the whole file...
     public static QcServiceData readFileData(File dataFile) throws Exception {
         return readFileData(dataFile, null);
     }
+     */
     private static final String CST = "[,;\t]";
     
     private static final int MIN_HEADERS = 4; // XXX TODO: What should this be?
     
-    public static QcServiceData readFileData(File dataFile, Collection<String>selectedVars) throws Exception {
+    public static QcServiceData readFileData(File dataFile, 
+                                             Collection<String>selectedVars)
+             throws Exception {
+        return readFileData(dataFile, selectedVars, Collections.emptyList());
+    }
+    
+    public static QcServiceData readFileData(File dataFile, 
+                                             Collection<String>selectedVars, 
+                                             Collection<String>supplementalVars) 
+             throws Exception {
         QcServiceData.QcServiceDataBuilder data = QcServiceData.builder();
-        Collection<String> addedVars = new ArrayList<>(selectedVars.size());
+        Collection<String> addedVars = new ArrayList<>(selectedVars.size()+supplementalVars.size());
         List<Integer> dataColumns = new ArrayList<>();
         try ( BufferedReader freader = new BufferedReader(new FileReader(dataFile))) {
             String line = null;
@@ -91,12 +102,31 @@ public class QcWsUtils {
                 if ( !selectedVars.contains(header)) {
                     continue;
                 }
-                logger.debug("Adding variable " + header);
+                logger.debug("Adding data variable " + header);
                 addedVars.add(header);
                 dataColumns.add(new Integer(idx));
                 selectedVars.remove(header);
                 String columnUnits = units[idx];
-                data.addVariableDefinition(VariableDefinition.builder()
+                data.addDataVariableDefinition(VariableDefinition.builder()
+                                           .standardName(StandardName.builder()
+                                                         .name(header)
+                                                         .build())
+                                           .addSupportedUnits(StandardName.builder()
+                                                              .name(columnUnits)
+                                                              .build())
+                                           .build());
+            }
+            for ( int idx = 0; idx < nheaders; idx += 1) {
+                String header = headers[idx];
+                if ( !supplementalVars.contains(header)) {
+                    continue;
+                }
+                logger.debug("Adding supplemental variable " + header);
+                addedVars.add(header);
+                dataColumns.add(new Integer(idx));
+                selectedVars.remove(header);
+                String columnUnits = units[idx];
+                data.addSupplementalVariableDefinition(VariableDefinition.builder()
                                            .standardName(StandardName.builder()
                                                          .name(header)
                                                          .build())
@@ -107,7 +137,7 @@ public class QcWsUtils {
             }
             int rowNum = 0;
             if ( nextLine != null && nextLine.length <= nheaders ) {
-                DataRow row = pullDataFields(rowNum++, nextLine, dataColumns); // new DataRow(Arrays.asList(nextLine));
+                DataRow row = pullDataFields(String.valueOf(rowNum++), nextLine, dataColumns); // new DataRow(Arrays.asList(nextLine));
                 data.addRow(row);
             }
             while ((line = freader.readLine()) != null) {
@@ -121,7 +151,11 @@ public class QcWsUtils {
 //                    logger.warn("Found non-data row while parsing data: " + line);
 //                    continue;
 //                }
-                DataRow row = pullDataFields(rowNum++, values, dataColumns); // new DataRow(Arrays.asList(nextLine));
+                if ( values.length < headers.length ) {
+                    logger.info("short line at row " + rowNum + ":" + line);
+                    continue;
+                }
+                DataRow row = pullDataFields(String.valueOf(rowNum++), values, dataColumns); // new DataRow(Arrays.asList(nextLine));
                 data.addRow(row);
             }
         }
@@ -136,12 +170,12 @@ public class QcWsUtils {
      * @param dataColumns
      * @return
      */
-    private static DataRow pullDataFields(int rowNum, String[] values, List<Integer> dataColumns) {
+    private static DataRow pullDataFields(String rowId, String[] values, List<Integer> dataColumns) {
         List<Object>dataFields = new ArrayList<>(dataColumns.size());
         for (Integer col : dataColumns) {
             dataFields.add(values[col.intValue()].trim());
         }
-        return new DataRow(rowNum, dataFields);
+        return new DataRow(rowId, dataFields);
     }
 
     /**

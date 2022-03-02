@@ -8,7 +8,9 @@ import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlRootElement;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
 import gov.noaa.pmel.qcaas.QcServiceData;
 import gov.noaa.pmel.qcaas.QcTestConfiguration;
@@ -32,13 +34,14 @@ import lombok.Setter;
 @AllArgsConstructor
 @XmlRootElement
 @XmlAccessorType(XmlAccessType.FIELD)
-public class QcInvocationRequest {
+@JsonInclude(Include.NON_NULL)
+public class QcInvocationRequest implements QcInvocationMessage {
 
     @Builder.Default
-    @JsonProperty("requestId")
+    @JsonProperty("request_id")
     private String _requestId = String.valueOf(System.currentTimeMillis());
     
-    @JsonIgnore
+    @JsonProperty("test_info")
     private TestInfo _test;
     
     @JsonProperty("configuration")
