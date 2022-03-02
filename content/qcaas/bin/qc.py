@@ -1,5 +1,6 @@
-#!/usr/local/bin/python3
+#!/usr/bin/python3
 # This allows the script to be run (at least on unix-based systems) stand-alone
+# You may have to change this for your system.
 
 # QCaaS test/example script
 # Does random 0-9 flags for each specified data variable

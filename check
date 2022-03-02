@@ -1,8 +1,15 @@
 
+# check round-trip QC invocation
+
 hazy=https://data.pmel.noaa.gov/sdig/qcaas/ws/qc
-PORT=8288
+eclipse_mock_server=8288
+release_tomcat=8573
+
+PORT=$release_tomcat
 HOST=localhost
 TEST=echo
+# you will likely have to adjust the python path in content/qcaas/bin/qc.py for your system
+# TEST=qcpy
 
 DATA_FILE=test/data/33RO20150410.exc_units.csv
 
