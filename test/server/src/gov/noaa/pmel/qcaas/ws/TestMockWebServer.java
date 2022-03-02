@@ -41,10 +41,10 @@ import com.sun.jersey.spi.container.servlet.ServletContainer;
  */
 public class TestMockWebServer {
 
-	private static final String MODULE_NAME = "tws";
+	private static final String MODULE_NAME = "ws";
 
 	private static final int DEFAULT_PORT = 8288;
-	private static final String DEFAULT_CONTEXT = "qcs";
+	private static final String DEFAULT_CONTEXT = "qcaas";
 	private static final String DEFAULT_HANDLER = "org.eclipse.jetty.server.handler.DefaultHandler";
 
 
@@ -189,8 +189,8 @@ public class TestMockWebServer {
 		jerseyContext.setResourceBase("WebContent");
         
         // uncomment to add signed message verifier
-        jerseyContext.addFilter(gov.noaa.pmel.qcaas.ws.SignedMsgVerifier.class, "/tws/*", EnumSet.of(DispatcherType.REQUEST));
-		jerseyContext.addServlet(sh, "/tws/*");
+//        jerseyContext.addFilter(gov.noaa.pmel.qcaas.ws.SignedMsgVerifier.class, "/ws/*", EnumSet.of(DispatcherType.REQUEST));
+		jerseyContext.addServlet(sh, "/ws/*");
         
 //		ServletHolder sh2 = new ServletHolder(ServletContainer.class);
 //		sh2.setInitParameter("com.sun.jersey.config.property.resourceConfigClass", "com.sun.jersey.api.core.PackagesResourceConfig");
@@ -204,20 +204,6 @@ public class TestMockWebServer {
         holderHome.setInitParameter("dirAllowed","true");
         holderHome.setInitParameter("gzip", "true");
         holderHome.setInitParameter("pathInfoOnly","true");
-        
-//        jerseyContext.addServlet(holderHome,"/tws/files");
-//        ServletHolder idbStatic1 = new ServletHolder("idbStatic1", StaticServlet.class);
-//        idbStatic1.setInitParameter("resource.root.property", "argo.server.syncdb.dir");
-//        jerseyContext.addServlet(idbStatic1,"/twx/idb/files/*");
-//        ServletHolder idbStatic2 = new ServletHolder("idbStatic2", StaticServlet.class);
-//        idbStatic2.setInitParameter("resource.root.property", "argo.server.syncdb.dir");
-//        jerseyContext.addServlet(idbStatic2,"/tws/idb/files/*");
-//        ServletHolder ilogStatic1 = new ServletHolder("ilmStatic1", StaticServlet.class);
-//        ilogStatic1.setInitParameter("resource.root", "/");
-//        jerseyContext.addServlet(ilogStatic1,"/twx/ilm/files/*");
-//        ServletHolder ilogStatic2 = new ServletHolder("ilmStatic2", StaticServlet.class);
-//        ilogStatic2.setInitParameter("resource.root", "/");
-//        jerseyContext.addServlet(ilogStatic2,"/tws/ilm/files/*");
         
         // WARNING: Serves up content of project directory.
         jerseyContext.addServlet(holderHome,"/*");

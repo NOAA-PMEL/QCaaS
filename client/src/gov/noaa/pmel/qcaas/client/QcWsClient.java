@@ -45,18 +45,15 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import gov.noaa.pmel.tws.client.HttpServiceResponse;
 import gov.noaa.pmel.tws.client.TwsClient;
-import gov.noaa.pmel.tws.client.TwsClientFactory;
 import gov.noaa.pmel.tws.client.impl.TwsClientImpl;
 import gov.noaa.pmel.tws.client.impl.TwsClientImpl.NoopException;
 import gov.noaa.pmel.tws.client.util.MultipartUtility;
-import gov.noaa.pmel.tws.client.util.SignedMultipartUtility;
 import gov.noaa.pmel.qcaas.DataRow;
 import gov.noaa.pmel.qcaas.QcServiceData;
+import gov.noaa.pmel.qcaas.QcServiceException;
 import gov.noaa.pmel.qcaas.QcServiceWS;
 import gov.noaa.pmel.qcaas.ws.QcInvocationRequest;
 import gov.noaa.pmel.qcaas.ws.QcInvocationResponse;
-import gov.noaa.pmel.qcaas.ws.QcServiceResource;
-import gov.noaa.pmel.tws.auth.HttpRequestSigner;
 import gov.noaa.pmel.tws.auth.util.PrivateKeyReader;
 import gov.noaa.pmel.tws.util.ApplicationConfiguration;
 import gov.noaa.pmel.tws.util.Logging;
@@ -226,16 +223,20 @@ public class QcWsClient {
     }
 
     public QcInvocationResponse invokeQc(String test, QcInvocationRequest request) throws Exception {
-        HttpServiceResponse serviceResponse = unsignedPostContent(QC_TEST_INVOCATION_PATH + "/" + test, 
+        String testUrl = QC_TEST_INVOCATION_PATH + ( StringUtils.emptyOrNull(test) ? "" : "/" + test );
+        HttpServiceResponse serviceResponse = unsignedPostContent(testUrl,
                                                                   MediaType.APPLICATION_JSON, 
                                                                   request, 
                                                                   MediaType.APPLICATION_JSON);
-        System.out.println(serviceResponse);
+//        System.out.println(serviceResponse);
+        if ( serviceResponse.getCode() != 200 ) {
+            throw new QcServiceException(serviceResponse.fullString());
+        }
         QcInvocationResponse invocationResponse = 
               new ObjectMapper().readValue(serviceResponse.getContentBytes(), QcInvocationResponse.class);
-        try (PrintWriter out = new PrintWriter(new FileWriter("qcresponse.js")); ) {
-            out.println(new ObjectMapper().writeValueAsString(invocationResponse));
-        }
+//        try (PrintWriter out = new PrintWriter(new FileWriter("qcresponse.js")); ) {
+//            out.println(new ObjectMapper().writeValueAsString(invocationResponse));
+//        }
         return invocationResponse;
     }
     private HttpServiceResponse unsignedPostContent(String requestPath, String accept, // String fileName,
@@ -245,7 +246,7 @@ public class QcWsClient {
         HttpServiceResponse response = null;
         try {
           URL url = new URL(_serviceEndpoint.toString() + requestPath);
-          System.out.println("posting to " + url);
+//          System.out.println("posting to " + url);
           logger.info("posting to " + url);
                       
           long t0 = System.currentTimeMillis();
@@ -259,9 +260,9 @@ public class QcWsClient {
               os.flush();
           }
           
-          try (PrintWriter out = new PrintWriter(new FileWriter("qcrequest.js")); ) {
-              out.println(new ObjectMapper().writeValueAsString(request));
-          }
+//          try (PrintWriter out = new PrintWriter(new FileWriter("qcrequest.js")); ) {
+//              out.println(new ObjectMapper().writeValueAsString(request));
+//          }
         
           // read response - nothing expected
           response = new  HttpServiceResponse(api);
@@ -415,23 +416,75 @@ public class QcWsClient {
         try {
             List<String> argsList = Arrays.asList(args);
             InputStream inputStream = System.in;
+            PrintStream output = System.out;
+            boolean verbose = false;
+            if ( argsList.contains("-h") || argsList.contains("-?")) {
+                showHelp();
+                System.exit(0);
+            }
+            if ( argsList.contains("-v")) {
+                verbose = true;
+            }
             if ( argsList.contains("-f")) {
                 int idx = argsList.indexOf("-f") + 1;
                 if ( idx >= argsList.size()) {
                     throw new IllegalStateException("No QcInvocationRequest file specified.");
                 }
                 inputStream = new FileInputStream(argsList.get(idx));
+            } else if ( verbose ) {
+                System.out.println("Reading from StdIn.");
+            }
+            if ( argsList.contains("-o")) {
+                int idx = argsList.indexOf("-o") + 1;
+                if ( idx >= argsList.size()) {
+                    throw new IllegalStateException("No QcInvocationResponse output file specified.");
+                }
+                output = new PrintStream(new File(argsList.get(idx)));
             }
             
             String serviceUrl = QcClient.DEFAULT_SERVICE_URL;
+            if ( argsList.contains("-u")) {
+                int idx = argsList.indexOf("-u") + 1;
+                if ( idx >= argsList.size()) {
+                    throw new IllegalStateException("No Service URL base specified.");
+                }
+                serviceUrl = argsList.get(idx);
+            } else if ( verbose ) {
+                System.out.println("Using default service URL base: " + QcClient.DEFAULT_SERVICE_URL);
+            }
             URL serviceEndpoint = new URL(serviceUrl);
-            
+            if ( verbose ) {
+                System.out.println("Contacting service: " + serviceEndpoint);
+            }
+            String test = null;
             QcWsClient wsClient = QcWsClient.builder().serviceEndpoint(serviceEndpoint).build();
             QcInvocationRequest request = new ObjectMapper().readValue(inputStream, QcInvocationRequest.class);
-            QcInvocationResponse response = wsClient.invokeQc("random", request);
-            System.out.println(response);
+            QcInvocationResponse response = wsClient.invokeQc(test, request);
+            output.println(response);
         } catch (Exception ex) {
             ex.printStackTrace();
         }
     }
+
+    /**
+     * 
+     */
+    private static void showHelp() {
+        // options :
+        // -f : JSON-formatted QcRequest file : default StdIn
+        // -p : QcResponse JSON output file : default StdOut
+        // -u : Qc Service request URL base : default 
+        // -t : test name
+        // -v : verbose run output (will corrupt use of StdOut for response)
+        
+        System.out.println("Invoke QCaaS Remote Web Service with QcInvocationRequest JSON data.");
+        System.out.println("Options include:");
+        System.out.println("\t-f : Input file containing QcInvocationRequest JSON data.\tDEFAULT: Use StdIn");
+        System.out.println("\t-o : Output file for QcInvocationResponse JSON data.\t\tDEFAULT: Use StdOut");
+        System.out.println("\t-u : QC Web Service URL base (<host[:port]>/<context_path>).\tDEFAULT: \"http://localhost:8288/qcaas/qc\"");
+        System.out.println("\t-t : QC Test : If required.  If not provided, assumes WS provides default test at URL base.*");
+        System.out.println("\t-v : Verbose run output (minimal).  Will corrupt JSON if using StdOut.");
+        System.out.println("\t * : Current implementation does not provide a default test.");
+    }
+
 }

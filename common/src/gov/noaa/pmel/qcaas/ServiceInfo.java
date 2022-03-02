@@ -7,10 +7,10 @@ import java.net.URL;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
-import lombok.Setter;
+import lombok.NoArgsConstructor;
 
 /**
  * @author kamb
@@ -18,7 +18,9 @@ import lombok.Setter;
  */
 @Data
 @Builder
-@Setter(AccessLevel.NONE)
+@NoArgsConstructor
+@AllArgsConstructor
+//@Setter(AccessLevel.NONE)
 public class ServiceInfo {
 
     @JsonProperty("name")

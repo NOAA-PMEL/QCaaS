@@ -18,7 +18,7 @@ public interface IfQcServiceWs {
     Response getServiceMetadata();
 //    Response getServiceMetadata(String p_version);
     
-    Response getTestMetadata(String p_testName);
+    Response getTestMetadata(String p_testName, String p_version);
 //    Response getTestMetadata(String p_testName, String p_version);
     
     Response performQc(String p_test, QcInvocationRequest qcRequest);

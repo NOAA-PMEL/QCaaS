@@ -19,17 +19,18 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 
-import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import gov.noaa.pmel.qcaas.QcWsUtils;
+import gov.noaa.pmel.qcaas.ws.QcInvocationMessage;
 import gov.noaa.pmel.qcaas.ws.QcInvocationRequest;
 import gov.noaa.pmel.qcaas.ws.QcInvocationRequest.QcInvocationRequestBuilder;
 import gov.noaa.pmel.qcaas.ws.QcInvocationResponse;
 import gov.noaa.pmel.tws.client.impl.TwsClientImpl.NoopException;
 import gov.noaa.pmel.tws.util.ApplicationConfiguration;
+import gov.noaa.pmel.tws.util.Logging;
 import gov.noaa.pmel.tws.util.StringUtils;
 import gov.noaa.pmel.tws.util.cli.CLClient;
 import gov.noaa.pmel.tws.util.cli.CLCommand;
@@ -45,18 +46,23 @@ public class QcClient extends CLClient {
 
     private static Logger logger;
     
-    static final String DEFAULT_SERVICE_URL = "http://localhost:8288/qcs/tws/qc";
+    static final String DEFAULT_SERVICE_URL = "http://localhost:8288/qcaas/ws/qc";
     
     private static CLOption opt_dataFile = CLOption.builder().name("data_file").flag("f").longFlag("datafile")
-            .description("path to the data file").build();
+            .requiredOption(true).description("path to the observation data CSV file").build();
     private static CLOption opt_dataFields = CLOption.builder().name("data_fields").flag("d").longFlag("datafields")
-            .description("comma-separated list of data column header names to be sent for QC.").build();
+            .requiredOption(true).description("comma-separated list of data column header names to be sent for QC.").build();
+    private static CLOption opt_supplementalFields = CLOption.builder().name("supplemental_fields").flag("a").longFlag("supplemental")
+            .requiredOption(false).description("comma-separated list of additional data column header names required for QC.").build();
     private static CLOption opt_outputFile = CLOption.builder().name("output_file").flag("o").longFlag("output")
             .description("path to response output file.").defaultValue("standard out").build();
-    private static CLOption opt_serviceUrl = CLOption.builder().name("service_url").flag("s").longFlag("service")
-            .description("URL base for QC service.").build();
+    private static CLOption opt_serviceUrl = CLOption.builder().name("service_url").flag("u").longFlag("url")
+            .description("Base URL for QC service.").defaultValue(DEFAULT_SERVICE_URL).build();
     private static CLOption opt_qcTest = CLOption.builder().name("qc_test").flag("t").longFlag("test")
             .description("Name of QC test to perform.").build();
+    private static CLOption opt_dumpRequest = CLOption.builder().name("save_request").flag("s").longFlag("save")
+            .description("Write QcInvocationRequest JSON to specified file")
+            .defaultValue("qcrequest.js").build();
     
     private static CLOption opt_batch = CLOption.builder().name("batch").flag("y").longFlag("batch")
             .requiresValue(false)
@@ -73,9 +79,12 @@ public class QcClient extends CLClient {
                                                 .command("qc")
                                                 .description("Invoke QC service on specified data.")
                                                 .option(opt_dataFile)
+                                                .option(opt_outputFile)
                                                 .option(opt_dataFields)
+                                                .option(opt_supplementalFields)
                                                 .option(opt_serviceUrl)
                                                 .option(opt_qcTest)
+                                                .option(opt_dumpRequest)
 //                                                .option(opt_noop)
 //                                                .option(opt_verbose)
                                                 .build();
@@ -124,7 +133,7 @@ public class QcClient extends CLClient {
             // checkOptions(command);  done in CLClient runCommand checkArgs()
             
             _clOptions = new CLOptions(command, optionValues, arguments);
-            System.out.println("clOptions:"+_clOptions);
+//            System.out.println("clOptions:"+_clOptions);
             String serviceUrl = _clOptions.optionValue(opt_serviceUrl, DEFAULT_SERVICE_URL);
             URL serviceEndpoint = new URL(serviceUrl);
             
@@ -151,29 +160,48 @@ public class QcClient extends CLClient {
         String test = _clOptions.get(opt_qcTest);
         String dataFileName = _clOptions.get(opt_dataFile);
         String dataFields = _clOptions.get(opt_dataFields);
+        String supplFields = _clOptions.get(opt_supplementalFields);
         Collection<String> selectedFields = null;
         if ( dataFields != null ) {
             selectedFields = extractSelectedHeadNames(dataFields);
         }
-        QcInvocationRequest request = buildInvocationRequest(dataFileName, selectedFields);
+        Collection<String> supplementalFields = null;
+        if ( supplFields != null ) {
+            supplementalFields = extractSelectedHeadNames(supplFields);
+        }
+        QcInvocationRequest request = buildInvocationRequest(dataFileName, 
+                                                             selectedFields,
+                                                             supplementalFields);
+        if ( _optionValues.containsKey(opt_dumpRequest)) {
+            String dumpRequest = _clOptions.optionValue(opt_dumpRequest, "qcrequest.js");
+            writeJson(request, dumpRequest);
+        }
         QcInvocationResponse response = _wsClient.invokeQc(test, request);
         String outputFile = _clOptions.optionValue(opt_outputFile, null);
         if ( outputFile != null ) {
-            try (PrintWriter out = new PrintWriter(new File(outputFile))) {
-                new ObjectMapper().writeValue(out, response);
-            }
+            writeJson(response, outputFile);
         } else {
             new ObjectMapper().writeValue(System.out, response);
         }
     }
 
     /**
-     * @param dataFields
+     * @param response
+     * @param outputFile
+     */
+    private void writeJson(QcInvocationMessage response, String outputFile) throws Exception {
+        try (PrintWriter out = new PrintWriter(new File(outputFile))) {
+            out.println(new ObjectMapper().writeValueAsString(response));
+        }
+    }
+
+    /**
+     * @param fields
      * @return
      */
-    private Collection<String> extractSelectedHeadNames(String dataFields) {
-        if ( dataFields == null || dataFields.isEmpty()) { return null; }
-        String[] parts = dataFields.split("[,;]");
+    private Collection<String> extractSelectedHeadNames(String fields) {
+        if ( fields == null || fields.isEmpty()) { return null; }
+        String[] parts = fields.split("[,;]");
         Set<String> selectedNames = new TreeSet<>(new Comparator<String>() {
             @Override
             public int compare(String o1, String o2) {
@@ -201,14 +229,18 @@ public class QcClient extends CLClient {
     /**
      * @param dataFile 
      * @param selectedFields 
+     * @param supplFields 
      * @return
      * @throws Exception 
      */
-    private QcInvocationRequest buildInvocationRequest(String dataFileName, Collection<String> selectedFields) throws Exception {
+    private QcInvocationRequest buildInvocationRequest(String dataFileName, 
+                                                       Collection<String> selectedFields, 
+                                                       Collection<String> supplementalFields) 
+            throws Exception {
         if ( dataFileName != null ) {
             File dataFile = new File(dataFileName);
             QcInvocationRequestBuilder req = QcInvocationRequest.builder();
-            req.data(QcWsUtils.readFileData(dataFile, selectedFields));
+            req.data(QcWsUtils.readFileData(dataFile, selectedFields, supplementalFields));
             return req.build();
         } else {
             QcInvocationRequest req = new ObjectMapper().readValue(System.in, QcInvocationRequest.class);
@@ -230,7 +262,7 @@ public class QcClient extends CLClient {
               }
           }
           ApplicationConfiguration.Initialize("qcaas");
-          logger = LogManager.getLogger(QcClient.class);
+          logger = Logging.getLogger(QcClient.class);
           logger.debug("Running AdminClient");
           runCommand(filteredArgs.toArray(new String[filteredArgs.size()]));
       } catch (Exception ex) {

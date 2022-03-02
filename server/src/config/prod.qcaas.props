@@ -3,3 +3,5 @@
 # The environment would be specified as:
 # qcaas.env=prod
 #
+qcaas.qc.script.echo=qcrunner
+qcaas.qc.script.qcpy=qc.py

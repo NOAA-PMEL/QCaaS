@@ -3,6 +3,8 @@
  */
 package gov.noaa.pmel.qcaas.ws;
 
+import java.net.URL;
+
 import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -21,6 +23,7 @@ import javax.ws.rs.core.SecurityContext;
 import org.apache.log4j.Logger;
 
 import gov.noaa.pmel.qcaas.QcServiceWS;
+import gov.noaa.pmel.qcaas.ServiceInfo;
 import gov.noaa.pmel.qcaas.qc.QcServiceIfc;
 import gov.noaa.pmel.tws.util.Logging;
 
@@ -62,7 +65,7 @@ public class QcServiceResource extends ResourceBase implements IfQcServiceWs {
     public Response getServiceMetadata(@QueryParam("v") String p_version) {
         logger.info(dumpRequest(httpRequest));
         // TODO Auto-generated method stub
-        return Response.ok(httpRequest.getRequestURL().toString()).build();
+        return Response.ok("QC resource: " + httpRequest.getRequestURL().toString()).build();
     }
 
     /* (non-Javadoc)
@@ -70,13 +73,13 @@ public class QcServiceResource extends ResourceBase implements IfQcServiceWs {
     @GET
     @Path("{test}")
     @Produces({ MediaType.TEXT_HTML, MediaType.APPLICATION_JSON })
-     */
     @Override
     public Response getTestMetadata(@PathParam("test") String testName) {
         logger.info(dumpRequest(httpRequest));
         // TODO Auto-generated method stub
         return Response.ok(httpRequest.toString()).build();
     }
+     */
 
     /* (non-Javadoc)
      * @see gov.noaa.pmel.qcaas.ws.IfQcServiceWs#getTestMetadata(java.lang.String, java.lang.String)
@@ -89,7 +92,7 @@ public class QcServiceResource extends ResourceBase implements IfQcServiceWs {
                                     @QueryParam("v") String p_version) {
         logger.info(dumpRequest(httpRequest));
         // TODO Auto-generated method stub
-        return Response.ok(httpRequest.getRequestURL().toString()).build();
+        return Response.ok("test " + p_testName + " metadata: " + httpRequest.getRequestURL().toString()).build();
     }
 
     /* (non-Javadoc)
@@ -107,6 +110,7 @@ public class QcServiceResource extends ResourceBase implements IfQcServiceWs {
         try {
             QcServiceIfc svc = QcServiceFactory.getQcService(p_testName, qcRequest);
             QcInvocationResponse response = svc.performQc(qcRequest);
+            response.serviceInfo(ServiceInfo.builder().location(new URL(httpRequest.getRequestURL().toString())).build());
             logger.debug(response);
             return Response.ok(response).build();
         } catch (Exception ex) {

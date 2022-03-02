@@ -91,10 +91,21 @@
                 </fileset>
             </classpath>
         </javac>
+        <copy todir="${server.classes}/config">
+            <fileset dir="server/src/config">
+                <include name="*" />
+            </fileset>
+        </copy>
 	</target>
     <target name="compile-all" depends="compile-client, compile-server"/>
 	<target name="all" depends="client-jar, build-war" />
+	<target name="client" depends="client-jar"/>
     <target name="client-jar" depends="compile-client">
+        <copy todir="${client.classes}/config">
+            <fileset dir="client/src/config">
+                <include name="*" />
+            </fileset>
+        </copy>
         <jar destfile="${dir.jarfile}/qcaas-client.jar" filesetmanifest="mergewithoutmain">
             <manifest>
                 <attribute name="Main-Class" value="gov.noaa.pmel.qcaas.client.QcClient"/>
@@ -115,7 +126,13 @@
             <zipfileset excludes="META-INF/*.SF" src="${this}/client/lib/tws_client.jar"/>
         </jar>
     </target>
+	<target name="war" depends="build-war"/>
 	<target name="build-war" depends="compile-server">
+        <copy todir="${server.classes}/config">
+            <fileset dir="server/src/config">
+                <include name="*" />
+            </fileset>
+        </copy>
 		<war destfile="qcaas.war" webxml="${WebContent}/WEB-INF/web.xml">
             <classes dir="${server.classes}"/>
             <classes dir="${common.classes}"/>

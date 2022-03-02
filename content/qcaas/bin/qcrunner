@@ -1,6 +1,10 @@
 #!/bin/bash
 
-echo running QC as $@
+echo running default QC as $@ with $#
 
-cat $1 > $2
+if [ $# -eq  4 ] ; then
+	cat $2 > $4
+else
+	cat $1 > $2
+fi
 
