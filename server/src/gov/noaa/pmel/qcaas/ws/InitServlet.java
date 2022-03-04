@@ -30,7 +30,7 @@ public class InitServlet extends HttpServlet {
 	 * @see Servlet#init(ServletConfig)
 	 */
 	public void init(ServletConfig config) throws ServletException {
-        System.out.println("InitServlet.init");
+        System.out.println("QCaaS InitServlet.init");
         try {
             ApplicationConfiguration.Initialize("qcaas");
         } catch (ConfigurationException ex) {
