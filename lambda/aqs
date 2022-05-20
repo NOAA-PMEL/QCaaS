@@ -1,0 +1,4 @@
+#!/bin/bash
+BODY=`cat qcrequest.js`
+aws sqs send-message --queue-url https://sqs.us-west-1.amazonaws.com/928198976571/TheQcQueue --message-body $BODY
+
