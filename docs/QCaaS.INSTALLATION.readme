@@ -17,17 +17,20 @@ Servlet path: [qccas]
 		If extra levels necessary, add path levels separated by # : webapps/<lvl0#lvl1[...]>.war
 
 Context Path: [ws]
-	webapps/<war_name>/WEB-INF/web.xml
+	set in webapps/<war_name>/WEB-INF/web.xml
 
 Application Path: [qc]
 	hard-coded : gov.noaa.pmel.qcaas.ws.QcServiceResource
 
 Script location:
 	default: [tomcat-install-root]/content/qcaas/bin
+	can be set in configuration properties file with property qcass.qc.script.dir
+
 
 QCaaS configuration properties files: content/qcaas/config
 	The main thing that needs to be specified is the test name -> script mapping
-	as qcaas.qc.script.<test_name>=<script_name>
+	as :  qcaas.qc.script.<test_name>=<script_name>
+	<script_name> can be relative to script dir (above) or a full path.
 
 	Typically this would be specified either in machine- or environment-specific config file.
 

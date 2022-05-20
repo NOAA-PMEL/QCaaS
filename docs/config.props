@@ -1,0 +1,9 @@
+./src/gov/noaa/pmel/qcaas/qc/QcServiceImpl.java:222:                      ApplicationConfiguration.getProperty("qcaas.qc.script."+_testName+".mode", ""));
+./src/gov/noaa/pmel/qcaas/qc/QcServiceImpl.java:233:            String qcScript = ApplicationConfiguration.getProperty("qcaas.qc.script", "bin/qcrunner");
+./src/gov/noaa/pmel/qcaas/qc/QcScriptRunner.java:48:        SCRIPTS_DIR = ApplicationConfiguration.getProperty("qcaas.qc.script.dir", STANDARD_SCRIPTS_DIR);
+./src/gov/noaa/pmel/qcaas/qc/QcScriptRunner.java:254:        String scriptName = ApplicationConfiguration.getProperty(scriptNameProperty, null);
+./src/gov/noaa/pmel/qcaas/qc/QcScriptRunner.java:257:                scriptName = ApplicationConfiguration.getProperty(baseScriptNameProperty);
+./src/gov/noaa/pmel/qcaas/ws/UploadResource.java:121:    		String rootDirName = ApplicationConfiguration.getProperty("argo.server.syncdb.dir", "db_sync");
+./src/gov/noaa/pmel/qcaas/ws/QcServiceFactory.java:55:            ApplicationConfiguration.getConfigurationProperty("qcaas.qc.impl."+testName, 
+./src/gov/noaa/pmel/qcaas/ws/SignedMsgVerifier.java:91:        ConfigurationProperty validationProp = ApplicationConfiguration.getConfigurationProperty("qcaas.request.validate");
+./src/gov/noaa/pmel/qcaas/ws/BaseResource.java:33:	public static String serviceBase = ApplicationConfiguration.getProperty("argo.service.url", "http:/localhost:8088/argolab"); // XXX TODO: discover dynamically from context ?

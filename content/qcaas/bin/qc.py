@@ -91,5 +91,5 @@ if __name__ == '__main__':
         print(f'writing to file: {outfile}', file=sys.stderr)
         write_file(qcresponse, outfile)
     else:
-        print(qcresponse)
+        print(json.dumps(qcresponse))
     

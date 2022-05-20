@@ -3,12 +3,23 @@
  */
 package gov.noaa.pmel.qcaas.qc;
 
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.util.Scanner;
 
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import gov.noaa.pmel.qcaas.QcServiceData;
@@ -31,24 +42,38 @@ public class QcScriptRunner implements QcServiceIfc {
     private static final Logger logger = LogManager.getLogger(QcScriptRunner.class);
 
     private static final String RANDOM = "random";
-    private static final String SCRIPT = "script";
     private static final String STANDARD_SCRIPTS_DIR = "content/qcaas/bin/";
-    private String _testName = RANDOM;
-    private String SCRIPTS_DIR;
-    /**
-     * 
-     */
-    private QcScriptRunner() {
+    private static String SCRIPTS_DIR;
+    static {
         SCRIPTS_DIR = ApplicationConfiguration.getProperty("qcaas.qc.script.dir", STANDARD_SCRIPTS_DIR);
         if ( ! SCRIPTS_DIR.endsWith("/")) {
             SCRIPTS_DIR += "/";
         }
     }
-
-    public QcScriptRunner(String testName) {
-        this();
-        _testName = testName;
+    
+//    private File _script;
+    private String _scriptName = RANDOM;
+//    private OutputStream _outputStream;
+//    private InputStream _inputStream;
+    private InvocationMode _mode;
+    
+    /**
+     * 
+     */
+    private QcScriptRunner() {
     }
+
+    // XXX Get test v script name sorted out...
+    public QcScriptRunner(String testName, InvocationMode mode) {
+        this();
+        _scriptName = testName;
+        _mode = mode;
+    }
+//    public QcScriptRunner(File script, OutputStream output, InputStream input) {
+//        _script = script;
+//        _outputStream = output;
+//        _inputStream = input;
+//    }
 
     /* (non-Javadoc)
      * @see gov.noaa.pmel.qcaas.qc.QcServiceIfc#getServiceMetadata()
@@ -73,14 +98,112 @@ public class QcScriptRunner implements QcServiceIfc {
      */
     @Override
     public QcInvocationResponse performQc(QcInvocationRequest request) throws QcServiceException {
-        return runQcScript(request);
+        switch (_mode) {
+            case STDIN:
+                return runQcScriptWithStdIn(request);
+            case FILE:
+            default:
+                return runQcScriptWithFileInput(request);
+        }
     }
 
-    public QcInvocationResponse runQcScript(QcInvocationRequest request) throws QcServiceException {
+    public QcInvocationResponse runQcScriptWithStdIn(QcInvocationRequest request) throws QcServiceException {
+        String[] commands = {_scriptName};
+        ProcessBuilder builder = new ProcessBuilder(commands);
+//        builder.directory(new File("C:/windows/system32"));
+        File errFile;
+        try {
+            errFile = getTempFile(".err");
+        } catch (IOException iex) {
+            throw new QcServiceException("Error creating script error output: " + iex, iex);
+        }
+        
+        QcInvocationResponse qcResponse;
+        
+        try {
+            Process process = builder.start();
+            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+            ByteArrayInputStream inputStream = getBaInputStream(request);
+    
+            OutputStream stdin = process.getOutputStream();
+            InputStream stdout = process.getInputStream();
+            InputStream stderr = process.getErrorStream();
+    
+            try ( BufferedReader pOut = new BufferedReader(new InputStreamReader(stdout));
+                  BufferedWriter pIn = new BufferedWriter(new OutputStreamWriter(stdin));
+                  BufferedReader pErr = new BufferedReader(new InputStreamReader(stderr)); ) {
+    
+                new Thread(() -> {
+                    String read;
+                    try (BufferedWriter output = new BufferedWriter(new OutputStreamWriter(outputStream));) {
+                        while ((read = pOut.readLine()) != null) {
+                            output.write(read);
+                            output.newLine();
+                            output.flush();
+                        }
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }).start();
+        
+                new Thread(() -> {
+                    String read;
+                    try (BufferedWriter error = new BufferedWriter(new FileWriter(errFile));) {
+                        while ((read = pErr.readLine()) != null) {
+                            error.write(read);
+                            error.newLine();
+                            error.flush();
+                        }
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }).start();
+        
+                new Thread(() -> {
+                        try (Scanner scanner = new Scanner(inputStream)) {
+                            String line;
+                            while (scanner.hasNextLine()) {
+                                line = scanner.nextLine();
+                                pIn.write(line);
+                                pIn.newLine();
+                                pIn.flush();
+                            }
+                            pIn.close();
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                }).start();
+            
+                System.out.println("Waiting");
+                int result = process.waitFor();
+                System.out.println("result: " + result);
+            } catch (InterruptedException ex) {
+                // TODO Auto-generated catch block
+                ex.printStackTrace();
+            }
+            qcResponse = new ObjectMapper().readValue(outputStream.toByteArray(), QcInvocationResponse.class);
+            return qcResponse;
+        } catch (IOException iox) {
+            throw new QcServiceException("There was an error running the Qc Script:" + iox.getMessage(), iox);
+        }
+    }
+    
+    /**
+     * @param request
+     * @return
+     * @throws JsonProcessingException 
+     */
+    private ByteArrayInputStream getBaInputStream(QcInvocationRequest request) throws JsonProcessingException {
+        // TODO Auto-generated method stub
+        byte[] bytes = new ObjectMapper().writeValueAsString(request).getBytes();
+        return new ByteArrayInputStream(bytes);
+    }
+
+    public QcInvocationResponse runQcScriptWithFileInput(QcInvocationRequest request) throws QcServiceException {
         logger.info(request);
         String[] scriptArgs = new String[4];
         try {
-            String qcScript = getQcScript(request);
+            String qcScript = _scriptName; // getQcScript(_scriptName, request);
             logger.info("Running QC script: " + qcScript);
             File dataFile = writeDataFile(request);
             int idx=0;
@@ -105,7 +228,7 @@ public class QcScriptRunner implements QcServiceIfc {
                         .append("Non zero result (")
                         .append(exit)
                         .append(") running test " )
-                        .append( _testName )
+                        .append( _scriptName )
                         .append( " on request " )
                         .append( request.requestId())
                         .append("\nError Output:")
@@ -124,10 +247,10 @@ public class QcScriptRunner implements QcServiceIfc {
      * @return
      * @throws PropertyNotFoundException 
      */
-    private String getQcScript(QcInvocationRequest request) {
+    public static String getQcScript(String testName, QcInvocationRequest request) {
         String baseScriptNameProperty = "qcaas.qc.script";
         String scriptNameProperty = baseScriptNameProperty + 
-                (StringUtils.emptyOrNull(_testName) ? "" : "." + _testName);
+                (StringUtils.emptyOrNull(testName) ? "" : "." + testName);
         String scriptName = ApplicationConfiguration.getProperty(scriptNameProperty, null);
         if ( StringUtils.emptyOrNull(scriptName)) {
             try {
@@ -167,15 +290,15 @@ public class QcScriptRunner implements QcServiceIfc {
      * @param dataFile 
      * @return
      */
-    private File getOutputFile(QcInvocationRequest request, File dataFile) {
+    private static File getOutputFile(QcInvocationRequest request, File dataFile) {
         return getRelatedFile(dataFile, ".out");
     }
     
-    private File getErrorFile(QcInvocationRequest request, File dataFile) {
+    private static File getErrorFile(QcInvocationRequest request, File dataFile) {
         return getRelatedFile(dataFile, ".err");
     }
     
-    private File getRelatedFile(File forFile, String relation) {
+    private static File getRelatedFile(File forFile, String relation) {
         String dataFilePath = forFile.getAbsolutePath();
         String dotRelation = relation.startsWith(".") ? relation : "."+relation;
         String outputFilePath = dataFilePath.substring(0, dataFilePath.lastIndexOf('.')) + dotRelation;
@@ -187,10 +310,27 @@ public class QcScriptRunner implements QcServiceIfc {
      * @return
      * @throws IOException 
      */
-    private File writeDataFile(QcInvocationRequest request) throws IOException {
-        File dataFile = File.createTempFile("qc_", ".data");
+    private static File writeDataFile(QcInvocationRequest request) throws IOException {
+        File dataFile = getTempFile(".data");
         new ObjectMapper().writeValue(dataFile, request); // .data());
         return dataFile;
+    }
+    
+    private static File getTempFile(String extension) throws IOException {
+        String fullExt = extension.startsWith(".") ? extension : "." + extension;
+        File tmpFile = File.createTempFile("qc_", fullExt);
+        return tmpFile;
+    }
+
+    /**
+     * @param request
+     * @param _testName
+     * @param scriptMode
+     * @return
+     */
+    public static QcScriptRunner runnerFor(QcInvocationRequest request, String testName, InvocationMode scriptMode) {
+        QcScriptRunner runner = new QcScriptRunner(testName, scriptMode);
+        return runner;
     }
 
 }

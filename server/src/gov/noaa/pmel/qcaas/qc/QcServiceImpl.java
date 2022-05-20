@@ -216,8 +216,13 @@ public class QcServiceImpl implements QcServiceIfc {
     }
 
     public QcInvocationResponse runQcScript(QcInvocationRequest request) throws QcServiceException {
-        QcScriptRunner runner = new QcScriptRunner(_testName);
-        QcInvocationResponse response = runner.runQcScript(request);
+        String scriptName = QcScriptRunner.getQcScript(_testName, request);
+        InvocationMode scriptMode = 
+                InvocationMode.modeFor(
+                      ApplicationConfiguration.getLatestProperty("qcaas.qc.script."+_testName+".mode", ""));
+        
+        QcScriptRunner runner = QcScriptRunner.runnerFor(request, scriptName, scriptMode);
+        QcInvocationResponse response = runner.performQc(request);
         return response;
     }
     /* 

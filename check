@@ -1,15 +1,41 @@
 
 # check round-trip QC invocation
 
+CLIENT_JAR=qcaas-client.jar
+
+REQUEST_FILE=qcrequest-check.js
+RESPONSE_FILE=qcresponse-check.js
+
+roll() {
+	fname=$1
+	bname=${fname%.*}
+	ext=${fname##*.}
+	n=`ls ${bname}* | wc`
+	na=($n)
+	rolln=${na[0]}
+	toname=${bname}-${rolln}.${ext}
+	echo Moving prior $fname to $toname
+	mv ${fname} $toname
+}
+
+if [ -e ${REQUEST_FILE} ] ; then
+	roll ${REQUEST_FILE}
+fi
+if [ -e ${RESPONSE_FILE} ] ; then
+	roll ${RESPONSE_FILE}
+fi
+
 hazy=https://data.pmel.noaa.gov/sdig/qcaas/ws/qc
 eclipse_mock_server=8288
-release_tomcat=8573
+local_tomcat=8573
 
-PORT=$release_tomcat
+PORT=$eclipse_mock_server
 HOST=localhost
-TEST=echo
+TEST=qcpy
+
 # you will likely have to adjust the python path in content/qcaas/bin/qc.py for your system
 # TEST=qcpy
+# TEST=echo # no flagging
 
 DATA_FILE=test/data/33RO20150410.exc_units.csv
 
@@ -21,7 +47,7 @@ fi
 
 echo Running test $TEST at ${HOST}:${PORT} with $DATA_FILE
 
-java -jar qcclient/qcaas-client.jar qc \
+java -jar ${CLIENT_JAR} qc \
 	-f ${DATA_FILE} \
 	-d "ctdsal,salnty,ctdoxy,oxygen" \
 	-a "DATE,TIME,LATITUDE,LONGITUDE,DEPTH,CTDPRS" \
