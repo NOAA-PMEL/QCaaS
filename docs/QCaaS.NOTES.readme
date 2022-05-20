@@ -1,9 +1,9 @@
 I work in eclipse.  (Yeah, I know.)  Included in the project are example .project and .classpath files as dot.project and dot.classpath.
 
+There is an ant (Yeah, I know) build.xml file that will create the .war and client .jar files.   There will undoubtedly be some configuration tweaks to run in your environment.
+
 In the code I use Project Lombok (https://projectlombok.org/) annotations for builder-plate code generation.
 See the Install section on their website for use within your IDE. The ant build.xml references a lombok.jar in lib-dev/
-
-There is an ant (Yeah, I know) build.xml file that will create the .war and client .jar files.   There will undoubtedly be some configuration tweaks to run in your environment.
 
 the <project_dir>/content... directory contains information required in the tomcat installation at <tomcat_install_dir>/content...  
 The project content/qcaas/config is a symbolic link to server/src/config and my local test tomcat installation symlinks <tomcat_install_dir>/content to <project_dir>/content. 
