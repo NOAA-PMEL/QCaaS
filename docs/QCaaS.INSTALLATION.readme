@@ -22,10 +22,14 @@ Context Path: [ws]
 Application Path: [qc]
 	hard-coded : gov.noaa.pmel.qcaas.ws.QcServiceResource
 
+content directory:
+    [tomcat-install-root]/content/qcaas
+    location for runtime config and scripts
+    must be copied from <project>/content to <tomcat-installp-root> if installing from source.
+     
 Script location:
 	default: [tomcat-install-root]/content/qcaas/bin
 	can be set in configuration properties file with property qcass.qc.script.dir
-
 
 QCaaS configuration properties files: content/qcaas/config
 	The main thing that needs to be specified is the test name -> script mapping
@@ -34,7 +38,7 @@ QCaaS configuration properties files: content/qcaas/config
 
 	Typically this would be specified either in machine- or environment-specific config file.
 
-	see README.config for configuration system information.
+	see config.README for configuration system information.
 
 Customizations:
 	Added webapps/ROOT/403.html, 404.html, error.html, index.html
