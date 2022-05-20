@@ -5,9 +5,7 @@
 qcaas.env=prod
 
 # whether messages are expected to be digitally signed and validated
-# qcaas.request.validate=false
-
-qcaas.service.host.default=http://localhost:8288/qcaas/ws/qc
+qcaas.request.validate=false
 
 # location of test scripts
 # default location: <tomcat-installation-root>/content/qcaas/bin
@@ -16,3 +14,5 @@ qcaas.service.host.default=http://localhost:8288/qcaas/ws/qc
 # test-to-script mapping
 # qcaas.qc.script.<test_name>=<script_name>
 
+# script input mode (file | stdin)
+# qcaas.qc.script.<test_name>.mode=<mode>

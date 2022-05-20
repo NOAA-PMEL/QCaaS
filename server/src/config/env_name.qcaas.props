@@ -6,4 +6,6 @@
 
 qcaas.request.validate=false
 
+# example test-to-script mapping config
+# script is location is either absolute or relative to qcaas.qc.script.dir
 qcaas.qc.script.qcpy=qc.py

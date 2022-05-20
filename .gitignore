@@ -3,6 +3,7 @@
 /.project
 /.settings/
 /*.log
+/qcre*.js
 logs
 storms_qc_test-revised.ipynb
 

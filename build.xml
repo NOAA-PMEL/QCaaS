@@ -15,7 +15,7 @@
     <property name="common.classes" value="${dir.builddir}/common/classes"/>
     <property name="common.libs" value="${this}/common/lib"/>
     <property name="server.classes" value="${dir.builddir}/server/classes"/>
-    <property name="server.libs" value="${WebContent}/WEB-INF/lib"/>
+    <property name="web_service.libs" value="${WebContent}/WEB-INF/lib"/>
     <target name="clean-client">
         <delete>
         	<fileset dir="${client.classes}">
@@ -47,7 +47,7 @@
                 <fileset dir="${common.libs}">
                 	 <include name="**/*.jar" />
                 </fileset>
-                <fileset dir="${server.libs}">
+                <fileset dir="${web_service.libs}">
                 	 <include name="**/*.jar" />
                 </fileset>
             </classpath>
@@ -59,7 +59,7 @@
             <classpath>
                 <pathelement location="${lombok}"/>
                 <pathelement path="${common.classes}"/>
-                <fileset dir="${server.libs}">
+                <fileset dir="${web_service.libs}">
                 	 <include name="**/*.jar" />
                 </fileset>
                 <fileset dir="${common.libs}">
@@ -83,7 +83,7 @@
                 <pathelement location="${lombok}"/>
                 <pathelement location="${servlet-api}"/>
                 <pathelement path="${common.classes}"/>
-                <fileset dir="${server.libs}">
+                <fileset dir="${web_service.libs}">
                 	 <include name="**/*.jar" />
                 </fileset>
                 <fileset dir="${common.libs}">

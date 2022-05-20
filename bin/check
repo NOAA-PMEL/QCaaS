@@ -25,7 +25,7 @@ if [ -e ${RESPONSE_FILE} ] ; then
 	roll ${RESPONSE_FILE}
 fi
 
-hazy=https://data.pmel.noaa.gov/sdig/qcaas/ws/qc
+prod=https://data.pmel.noaa.gov/sdig/qcaas/ws/qc
 eclipse_mock_server=8288
 local_tomcat=8573
 
