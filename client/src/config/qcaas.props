@@ -1,0 +1,11 @@
+#
+# runtime configuration for QCaaS project
+#
+
+# default service endpoint example
+# qcaas.service.host.default=https://data.pmel.noaa.gov/sdig/qcaas/ws/qc
+
+# whether messages are expected to be digitally signed and validated
+# currently not supported
+qcaas.request.validate=false
+
