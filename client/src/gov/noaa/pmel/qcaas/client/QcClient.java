@@ -46,12 +46,19 @@ public class QcClient extends CLClient {
 
     private static Logger logger;
     
-    static final String DEFAULT_SERVICE_URL = "http://localhost:8288/qcaas/ws/qc";
+    static final String DEV_DEFAULT_SERVICE_URL = "http://localhost:8288/qcaas/ws/qc";
+    static final String MATISSE_DEFAULT_SERVICE_URL = "http://matisse:8573/qcaas/ws/qc";
+    static final String DUNKEL_DEFAULT_SERVICE_URL = "http://dunkel:8573/qcaas/ws/qc";
+    static final String HAZY_DEFAULT_SERVICE_URL = "http://hazy:8484/sdig/qcaas/ws/qc";
+    static final String PROD_DEFAULT_SERVICE_URL = "https://data.pmel.noaa.gov/sdig/qcaas/ws/qc";
+    static final String DEFAULT_SERVICE_URL = DEV_DEFAULT_SERVICE_URL;
     
+    private static CLOption opt_jsonFile = CLOption.builder().name("json_file").flag("j").longFlag("jsonfile")
+            .description("path to the QcServiceRequest JSON file").build();
     private static CLOption opt_dataFile = CLOption.builder().name("data_file").flag("f").longFlag("datafile")
-            .requiredOption(true).description("path to the observation data CSV file").build();
+            .description("path to the observation data CSV file").build();
     private static CLOption opt_dataFields = CLOption.builder().name("data_fields").flag("d").longFlag("datafields")
-            .requiredOption(true).description("comma-separated list of data column header names to be sent for QC.").build();
+            .description("comma-separated list of data column header names to be sent for QC.").build();
     private static CLOption opt_supplementalFields = CLOption.builder().name("supplemental_fields").flag("a").longFlag("supplemental")
             .requiredOption(false).description("comma-separated list of additional data column header names required for QC.").build();
     private static CLOption opt_outputFile = CLOption.builder().name("output_file").flag("o").longFlag("output")
@@ -78,6 +85,7 @@ public class QcClient extends CLClient {
     private static CLCommand cmd_qcData = CLCommand.builder().name("run_qc")
                                                 .command("qc")
                                                 .description("Invoke QC service on specified data.")
+                                                .option(opt_jsonFile)
                                                 .option(opt_dataFile)
                                                 .option(opt_outputFile)
                                                 .option(opt_dataFields)
@@ -134,7 +142,33 @@ public class QcClient extends CLClient {
             
             _clOptions = new CLOptions(command, optionValues, arguments);
 //            System.out.println("clOptions:"+_clOptions);
-            String serviceUrl = _clOptions.optionValue(opt_serviceUrl, DEFAULT_SERVICE_URL);
+            String optServiceUrl = _clOptions.optionValue(opt_serviceUrl, DEFAULT_SERVICE_URL);
+            String serviceUrl = optServiceUrl.toLowerCase();
+            if ( ! serviceUrl.contains("http")) {
+                serviceUrl = optServiceUrl.toUpperCase();
+                switch (serviceUrl) {
+                    case "DEV":
+                        serviceUrl = DEV_DEFAULT_SERVICE_URL;
+                        break;
+                    case "MATISSE":
+                    case "LOCALHOST":
+                        serviceUrl = MATISSE_DEFAULT_SERVICE_URL;
+                        break;
+                    case "DUNKEL":
+                        serviceUrl = DUNKEL_DEFAULT_SERVICE_URL;
+                        break;
+                    case "HAZY":
+                        serviceUrl = HAZY_DEFAULT_SERVICE_URL;
+                        break;
+                    case "PROD":
+                        serviceUrl = PROD_DEFAULT_SERVICE_URL;
+                        break;
+                    default:
+                        System.err.println("Invalid service URL: " + optServiceUrl);
+                        System.exit(-1);
+                }
+                logger.info("Using service url for " + optServiceUrl +": "+ serviceUrl);
+            }
             URL serviceEndpoint = new URL(serviceUrl);
             
             _wsClient = QcWsClient.builder().serviceEndpoint(serviceEndpoint).build();
@@ -158,20 +192,27 @@ public class QcClient extends CLClient {
         logger.info("doQc");
         logger.debug(_clOptions);
         String test = _clOptions.get(opt_qcTest);
-        String dataFileName = _clOptions.get(opt_dataFile);
-        String dataFields = _clOptions.get(opt_dataFields);
-        String supplFields = _clOptions.get(opt_supplementalFields);
-        Collection<String> selectedFields = null;
-        if ( dataFields != null ) {
-            selectedFields = extractSelectedHeadNames(dataFields);
+        String jsonFileName = _clOptions.get(opt_jsonFile);
+        QcInvocationRequest request;
+        if ( ! StringUtils.emptyOrNull(jsonFileName)) {
+            File jsonFile = new File(jsonFileName);
+            request = new ObjectMapper().readValue(jsonFile, QcInvocationRequest.class);
+        } else {
+            String dataFileName = _clOptions.get(opt_dataFile);
+            String dataFields = _clOptions.get(opt_dataFields);
+            String supplFields = _clOptions.get(opt_supplementalFields);
+            Collection<String> selectedFields = null;
+            if ( dataFields != null ) {
+                selectedFields = extractSelectedHeadNames(dataFields);
+            }
+            Collection<String> supplementalFields = null;
+            if ( supplFields != null ) {
+                supplementalFields = extractSelectedHeadNames(supplFields);
+            }
+            request = buildInvocationRequest(dataFileName, 
+                                             selectedFields,
+                                             supplementalFields);
         }
-        Collection<String> supplementalFields = null;
-        if ( supplFields != null ) {
-            supplementalFields = extractSelectedHeadNames(supplFields);
-        }
-        QcInvocationRequest request = buildInvocationRequest(dataFileName, 
-                                                             selectedFields,
-                                                             supplementalFields);
         if ( _optionValues.containsKey(opt_dumpRequest)) {
             String dumpRequest = _clOptions.optionValue(opt_dumpRequest, "qcrequest.js");
             writeJson(request, dumpRequest);
