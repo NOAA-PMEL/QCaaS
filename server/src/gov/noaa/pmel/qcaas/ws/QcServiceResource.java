@@ -58,8 +58,8 @@ public class QcServiceResource extends ResourceBase implements IfQcServiceWs {
     /* (non-Javadoc)
      * @see gov.noaa.pmel.qcaas.ws.IfQcServiceWs#getServiceMetadata(java.lang.String)
     @Override
-    @Path("")
      */
+    @Path("")
     @GET
     @Produces({ MediaType.TEXT_HTML, MediaType.APPLICATION_JSON })
     public Response getServiceMetadata(@QueryParam("v") String p_version) {

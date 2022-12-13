@@ -39,6 +39,11 @@ TEST=qcpy
 
 DATA_FILE=test/data/33RO20150410.exc_units.csv
 
+if [ ! -e $DATA_FILE ] ; then
+	echo Data File $DATA_FILE NOT FOUND
+	exit -2
+fi
+
 # DATA_FILE=/Users/kamb/workspace/oa_dashboard_test_data/typechecker/33RO20150410.exc.csv
 
 if [ $1 ] ; then

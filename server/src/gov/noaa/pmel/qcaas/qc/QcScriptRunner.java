@@ -114,6 +114,7 @@ public class QcScriptRunner implements QcServiceIfc {
         File errFile;
         try {
             errFile = getTempFile(".err");
+            logger.info("errFile:"+errFile);
         } catch (IOException iex) {
             throw new QcServiceException("Error creating script error output: " + iex, iex);
         }

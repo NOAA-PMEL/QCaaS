@@ -1,0 +1,108 @@
+#!/bin/bash
+#
+# check round-trip QC invocation
+#
+# Pulls a pre-specified dataset from ERDDAP server as CSV,
+# then invokes the qcClient to craft the QC Service Request JSON
+# and invokes the specified service
+#
+# Currently setup for hitting PMEL on-prem service, 
+# or (my) local IDE or Tomcat instances.
+#
+
+CLIENT_JAR=qcaas-client.jar
+
+REQUEST_FILE=qcrequest-check.js
+RESPONSE_FILE=qcresponse-check.js
+
+roll() {
+	fname=$1
+	bname=${fname%.*}
+	ext=${fname##*.}
+	n=`ls ${bname}* | wc`
+	na=($n)
+	rolln=${na[0]}
+	toname=${bname}-${rolln}.${ext}
+	echo Moving prior $fname to $toname
+	mv ${fname} $toname
+}
+
+if [ -e ${REQUEST_FILE} ] ; then
+	roll ${REQUEST_FILE}
+fi
+if [ -e ${RESPONSE_FILE} ] ; then
+	roll ${RESPONSE_FILE}
+fi
+
+prod_url=https://data.pmel.noaa.gov/sdig/qcaas/ws/qc
+eclipse_mock_server_port=8288
+local_tomcat_port=8573
+
+PORT=$eclipse_mock_server_port
+HOST=localhost
+
+TEST=qcpy
+TEST=sst
+
+# %2C : ,
+# %3C : <
+# %3E : >
+DATA_VARS=TEMP_AIR_MEAN,RH_MEAN
+ADDL_VARS=time,latitude,longitude
+URL_DATA_VARS="${DATA_VARS//,/$'%2C'}"
+URL_ADDL_VARS="${ADDL_VARS//,/$'%2C'}"
+
+ERDDAP_HOST=https://data.pmel.noaa.gov/pmel/erddap
+ERDDAP_DATASET=sd1069_2019
+ERDDAP_FTYPE=csv
+
+DFILE_NAME=`date +%Y%m%dT%H%M%S`.${ERDDAP_FTYPE}
+echo DFILE_NAME=$DFILE_NAME
+DATA_DIR=test/data/saildrone
+
+ERDDAP_REQUEST="${URL_DATA_VARS}%2c${URL_ADDL_VARS}&time>=max(time)-1days"
+echo ERDDAP_REQUEST=$ERDDAP_REQUEST
+CURL_REQUEST="${ERDDAP_HOST}/tabledap/${ERDDAP_DATASET}.${ERDDAP_FTYPE}?${ERDDAP_REQUEST}"
+echo CURL_REQUEST=$CURL_REQUEST
+
+# curl --compressed -g "https://data.pmel.noaa.gov/pmel/erddap/tabledap/sd1069_2019.csv?trajectory%2Ctime%2Clatitude%2Clongitude%2CSOG%2CBARO_PRES_MEAN%2CTEMP_AIR_MEAN%2CRH_MEAN%2CTEMP_SBE37_MEAN%2CCOND_SBE37_MEAN%2CSAL_SBE37_MEAN%2CTEMP_CTD_RBR_MEAN%2CCOND_RBR_MEAN%2Cwind_speed&time>=max(time)-1days" > sd4.csv
+
+DATA_FILE=$DATA_DIR/$DFILE_NAME
+
+# Get the data from ERDDAP
+curl --compressed -g "$CURL_REQUEST" > $DATA_FILE
+
+echo curl: $?
+
+# you will likely have to adjust the python path in content/qcaas/bin/qc.py for your system
+# TEST=qcpy
+# TEST=echo # no flagging
+
+# DATA_FILE=test/data/33RO20150410.exc_units.csv
+if [ ! -e $DATA_FILE ] ; then
+	echo Data File $DATA_FILE NOT FOUND
+	exit -2
+fi
+
+# DATA_FILE=/Users/kamb/workspace/oa_dashboard_test_data/typechecker/33RO20150410.exc.csv
+
+if [ $1 ] ; then
+	PORT=$1
+fi
+
+SERVICE_PATH=qcaas/ws/qc  
+
+SERVICE_URL=${SERVICE_HOST}:${PORT}/${SERVICE_PATH}
+
+echo Running test $TEST at ${SERVICE_URL} with $DATA_FILE
+
+java -jar ${CLIENT_JAR} qc \
+	-f ${DATA_FILE} \
+	-d "$DATA_VARS" \
+	-a "$ADDL_VARS" \
+	-s qcrequest-check.js -o qcresponse-check.js \
+	-t ${TEST} \
+	-u http://${HOST}:${PORT}/qcaas/ws/qc  
+#	-u $hazy
+#	-u http://${HOST}:${PORT}/qcaas/ws/qc  
+
