@@ -1,0 +1,33 @@
+
+# https://zoe5ltsc1d.execute-api.us-west-1.amazonaws.com/default/myLambdaPy2
+
+QCQ_URL=https://sqs.us-west-1.amazonaws.com/928198976571/TheQcQueue
+
+CHECK_URL=https://zoe5ltsc1d.execute-api.us-west-1.amazonaws.com/default/myLambdaPy2
+CHECK_DATA=aws_check.event
+
+QC_URL=https://syoua7rmr3.execute-api.us-west-1.amazonaws.com/qcs/xcService
+QC_DATA=qcrequest.js
+QC_DATA=../qcrequest-sd1033_tpos_2022_TEMP_SBE37_MEAN-20220725T132314-.js
+QC_DATA=../qcrequest-sd1066_tpos_2021-20220627T135554.js
+
+AWS_URL=https://zo2gcnjmj5-vpce-03d3352f8c6c13f69.execute-api.us-east-1.amazonaws.com/NOAA3100-DEV-APIGW/qcaas/ws/sst
+
+HAZY_URL=https://data.pmel.noaa.gov/sdig/qcaas/ws/qc/sst
+
+URL=$AWS_URL
+URL=$HAZY_URL
+DATA=$QC_DATA
+
+AWS_OUTFILE=aws.js
+HAZY_OUTFILE=pmel-large.js
+OUTFILE=$HAZY_OUTFILE
+
+echo Output to $OUTFILE
+
+CMD="time curl -H Content-Type:application/json -o $OUTFILE -d @$DATA $URL"
+
+response=`$CMD`
+
+echo $response
+

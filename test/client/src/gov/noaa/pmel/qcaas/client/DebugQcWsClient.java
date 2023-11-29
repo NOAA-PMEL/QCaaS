@@ -10,7 +10,7 @@ import java.io.InputStream;
  * @author kamb
  *
  */
-public class DebugQcWsClient extends QcClient {
+public class DebugQcWsClient extends DirectQcClient {
 
     public DebugQcWsClient() {
     }

@@ -1,0 +1,4 @@
+Error {
+    code=400;
+    message="Bad Request: Query error: Invalid \"max()\" constraint: \"max(time)-\". Timestamp constraints with \"max()\" must be in the form \"max(varName)[+|-positiveInteger[millis|seconds|minutes|hours|days|months|years]]\" (or singular units).";
+}

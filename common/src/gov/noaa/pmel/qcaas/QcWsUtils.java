@@ -35,9 +35,9 @@ public class QcWsUtils {
         return readFileData(dataFile, null);
     }
      */
-    private static final String CST = "[,;\t]";
+    public static final String CST = "[,;\t]";
     
-    private static final int MIN_HEADERS = 4; // XXX TODO: What should this be?
+    public static final int MIN_HEADERS = 4; // XXX TODO: What should this be?
     
     public static QcServiceData readFileData(File dataFile, 
                                              Collection<String>selectedVars)
@@ -182,7 +182,7 @@ public class QcWsUtils {
      * @param row
      * @return
      */
-    private static String[] trimTrailers(String[] row) {
+    public static String[] trimTrailers(String[] row) {
         return trimTrailers(row, true);
     }
     
@@ -216,7 +216,7 @@ public class QcWsUtils {
      * @param header
      * @return
      */
-    private static String[] tryHeaderUnits(String[] headersCopy) {
+    public static String[] tryHeaderUnits(String[] headersCopy) {
         String[] units = new String[headersCopy.length];
         for ( int col = 0; col < headersCopy.length; col += 1 ) {
             String header = headersCopy[col];
@@ -258,7 +258,7 @@ public class QcWsUtils {
      * @param row
      * @return
      */
-    private static boolean couldBeHeaderLine(String[] row) {
+    public static boolean couldBeHeaderLine(String[] row) {
         for (String col : row) {
             if ( col == null || col.trim().isEmpty() || isNumeric(col.trim())) {
                 return false;
@@ -284,7 +284,7 @@ public class QcWsUtils {
      * @param nextLine
      * @return
      */
-    private static boolean couldBeDataLine(String[] headers, String[] row) {
+    public static boolean couldBeDataLine(String[] headers, String[] row) {
         if ( row == null ) {
             return false;
         }
@@ -295,15 +295,16 @@ public class QcWsUtils {
         }
         // skip the first few because they might be IDs of some sort
         // It would be nice if we had the units here, but that's what we're trying to find.
-        for (int idx = 5; idx < headers.length; idx++) {
-            String col = row[idx];
-            if ( ! (col == null ||
-                    col.trim().isEmpty() ||
-                    isNumeric(col))) {
-                return false;
-            }
-        }
-        return true;
+//        for (int idx = 5; idx < headers.length; idx++) {
+//            String col = row[idx];
+//            if ( ! (col == null ||
+//                    col.trim().isEmpty() ||
+//                    isNumeric(col))) {
+//                return false;
+//            }
+//        }
+//        return true;
+        return ! couldBeHeaderLine(row);
     }
     private static boolean couldBeDataLine(String[] headers, String[] row, String[] units) {
         if ( row == null ) {

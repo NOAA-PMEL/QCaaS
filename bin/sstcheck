@@ -1,0 +1,106 @@
+
+# check round-trip QC invocation
+
+CLIENT_JAR=qcaas-client.jar
+
+REQUEST_FILE=qcrequest-check.js
+RESPONSE_FILE=qcresponse-check.js
+
+roll() {
+	fname=$1
+	bname=${fname%.*}
+	ext=${fname##*.}
+	n=`ls ${bname}* | wc`
+	na=($n)
+	rolln=${na[0]}
+	toname=${bname}-${rolln}.${ext}
+	echo Moving prior $fname to $toname
+	mv ${fname} $toname
+}
+
+if [ -e ${REQUEST_FILE} ] ; then
+	roll ${REQUEST_FILE}
+fi
+if [ -e ${RESPONSE_FILE} ] ; then
+	roll ${RESPONSE_FILE}
+fi
+
+prod=https://data.pmel.noaa.gov/sdig/qcaas/ws/qc
+eclipse_mock_server=8288
+local_tomcat=8573
+DUNKEL_PORT=8573
+LOCALHOST=localhost
+
+PORT=$eclipse_mock_server
+HOST=$LOCALHOST
+PORT=$local_tomcat
+TEST=sst
+# TEST=qcpy
+
+# %2C : ,
+# %3C : <
+# %3E : >
+DATA_VARS=TEMP_SBE37_MEAN
+ADDL_VARS=time,latitude,longitude
+URL_DATA_VARS="${DATA_VARS//,/$'%2C'}"
+URL_ADDL_VARS="${ADDL_VARS//,/$'%2C'}"
+
+ERDDAP_HOST=https://data.pmel.noaa.gov/pmel/erddap
+ERDDAP_DATASET=sd1033_tpos_2022
+# ERDDAP_DATASET=sd1066_tpos_2021
+ERDDAP_VARIABLE=${DATA_VARS}
+ERDDAP_FTYPE=csv
+
+TSTAMP=`date +%Y%m%dT%H%M%S`
+REQ_NAME=${ERDDAP_DATASET}_${ERDDAP_VARIABLE}-${TSTAMP}
+DFILE_NAME=${REQ_NAME}.${ERDDAP_FTYPE}
+DATA_DIR=test/data/saildrone
+DATA_FILE=$DATA_DIR/$DFILE_NAME
+
+#TIME="time%3E=2021-08-01&time%3C2021-08-08"
+TIME="time>=max(time)-1day"
+
+ERDDAP_REQUEST="${URL_DATA_VARS}%2c${URL_ADDL_VARS}&${TIME}"
+echo ERDDAP_REQUEST="$ERDDAP_REQUEST"
+CURL_REQUEST="${ERDDAP_HOST}/tabledap/${ERDDAP_DATASET}.${ERDDAP_FTYPE}?${ERDDAP_REQUEST}"
+
+# https://data.pmel.noaa.gov/pmel/erddap/tabledap/sd1066_tpos_2021.csv?latitude%2Clongitude%2Ctime%2CTEMP_SBE37_MEAN&time%3E=2022-01-01&time%3C=2022-06-14T19%3A59%3A00Z
+#
+# curl --compressed -g "https://data.pmel.noaa.gov/pmel/erddap/tabledap/sd1069_2019.csv?trajectory%2Ctime%2Clatitude%2Clongitude%2CSOG%2CBARO_PRES_MEAN%2CTEMP_AIR_MEAN%2CRH_MEAN%2CTEMP_SBE37_MEAN%2CCOND_SBE37_MEAN%2CSAL_SBE37_MEAN%2CTEMP_CTD_RBR_MEAN%2CCOND_RBR_MEAN%2Cwind_speed&time>=max(time)-1days" > sd4.csv
+
+echo CURL_REQUEST="curl --compressed -g $CURL_REQUEST > $DATA_FILE"
+
+curl --compressed -g "$CURL_REQUEST" > $DATA_FILE
+
+# you will likely have to adjust the python path in content/qcaas/bin/qc.py for your system
+# TEST=qcpy
+# TEST=echo # no flagging
+
+if [ ! -e $DATA_FILE ] ; then
+	echo Data File $DATA_FILE NOT FOUND
+	exit -2
+fi
+if [ -z $DATA_FILE ] ; then
+	echo No data returned for $CURL_REQUEST
+	exit -3
+fi
+
+# DATA_FILE=/Users/kamb/workspace/oa_dashboard_test_data/typechecker/33RO20150410.exc.csv
+
+if [ $1 ] ; then
+	PORT=$1
+fi
+
+
+echo Running test $TEST at ${HOST}:${PORT} with $DATA_FILE
+
+java -jar ${CLIENT_JAR} qc \
+	-f ${DATA_FILE} \
+	-d "$DATA_VARS" \
+	-a "$ADDL_VARS" \
+	-s qcrequest-${REQ_NAME}.js -o qcresponse-${REQ_NAME}.js \
+	-t ${TEST} \
+	-u http://${HOST}:${PORT}/qcaas/ws/qc  
+#	-u $hazy
+#	-u http://${HOST}:${PORT}/qcaas/ws/qc  
+

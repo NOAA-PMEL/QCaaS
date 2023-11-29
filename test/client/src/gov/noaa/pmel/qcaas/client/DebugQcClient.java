@@ -7,7 +7,7 @@ package gov.noaa.pmel.qcaas.client;
  * @author kamb
  *
  */
-public class DebugQcClient extends QcClient {
+public class DebugQcClient extends DirectQcClient {
 
     public DebugQcClient() {
     }
@@ -36,7 +36,7 @@ public class DebugQcClient extends QcClient {
                                             "-t", test, "-v" };
 //        String[] debugArgs = new String[] { "qc", "-s", serviceHost, "-t", test, " < ", "qcrequest.js" };
         try {
-            QcClient.main(debugArgs);
+            DirectQcClient.main(debugArgs);
             System.out.println("QcDebug complete.");
         } catch (Exception ex) {
             ex.printStackTrace();

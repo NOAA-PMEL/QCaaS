@@ -5,3 +5,9 @@
 #
 qcaas.qc.script.echo=qcrunner
 qcaas.qc.script.qcpy=qc.py
+qcaas.qc.script.qcpy.mode=stdin
+# ALT mode: file
+qcaas.qc.script.sst=sst.py
+qcaas.qc.script.sst.mode=stdin
+qcaas.qc.script.o2=o2.py
+qcaas.qc.script.o2.mode=stdin

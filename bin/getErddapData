@@ -1,0 +1,8 @@
+#!/bin/bash
+
+VARS=$1
+
+FNAME=$@
+
+
+# curl --compressed -g "https://data.pmel.noaa.gov/pmel/erddap/tabledap/sd1069_2019.nccsv?trajectory%2Ctime%2Clatitude%2Clongitude%2CSOG%2CBARO_PRES_MEAN%2CTEMP_AIR_MEAN%2CRH_MEAN%2CTEMP_SBE37_MEAN%2CCOND_SBE37_MEAN%2CSAL_SBE37_MEAN%2CTEMP_CTD_RBR_MEAN%2CCOND_RBR_MEAN%2Cwind_speed&time>=max(time)-1days" > sd4.nccsv

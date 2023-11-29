@@ -110,7 +110,7 @@ public class QcServiceImpl implements QcServiceIfc {
                 for (int i = 0; i < dataRow.size(); i++) {
                     Double d = dataRow.getDoubleValue(i);
 //                    responseRow.addValue(d);
-                    Character flag = rangeCheck(requestVariables.get(i), d);
+                    String flag = rangeCheck(requestVariables.get(i), d);
                     responseRow.addValue(flag);
                 }
                 responseData.addRow(responseRow.build());
@@ -138,12 +138,12 @@ public class QcServiceImpl implements QcServiceIfc {
     Map<String, DataRange> dataRanges = buildDataRanges();
     private static Map<String, DataRange> buildDataRanges() {
         Map<String, DataRange> ranges = new HashMap<>();
-        ranges.put("total_alkalinity",new DataRange(250, 800, 2500, 2600));
+        ranges.put("total_alkalinity",new DataRange(800, 250, 2500, 2600));
 		ranges.put("oxygen_in_water",new DataRange(0, 0, 500, 525));
 		ranges.put("water_temperature",new DataRange(-2.5, -2.0, 32, 38));
 		ranges.put("nitrate_in_water",new DataRange(-0.5, 0, 48, 50));
 		ranges.put("oxygen_in_water",new DataRange(0, 0, 500, 525));
-		ranges.put("pH_total", new DataRange(7, 7.2, 8.6, 9)); 
+		ranges.put("pH_total", new DataRange(7.2, 7, 8.6, 9)); 
 		ranges.put("phosphate_in_water",new DataRange(-0.5, 0, 3.85, 4));
 		ranges.put("SST",new DataRange(-2.5, -1.5, 31, 38));
 		ranges.put("silicate_in_water",new DataRange(-2, 0, 240, 250));
@@ -151,14 +151,14 @@ public class QcServiceImpl implements QcServiceIfc {
 		return ranges;
     }
 
-    char FLAG_NOT_CHECKED = '1';
+    String FLAG_NOT_CHECKED = "1";
 
     /**
      * @param variableDefinition
      * @param d
      * @return
      */
-    private char rangeCheck(VariableDefinition variableDefinition, Double d) {
+    private String rangeCheck(VariableDefinition variableDefinition, Double d) {
         DataRange varRange = dataRanges.get(variableDefinition.standardName().name());
         if ( varRange != null ) {
             return varRange.check(d);

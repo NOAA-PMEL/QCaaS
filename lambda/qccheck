@@ -1,0 +1,19 @@
+
+
+QC_DATA=qccheck_request.txt
+
+QC_URL=https://data.pmel.noaa.gov/sdig/qcaas/ws/qc/sst
+
+URL=$QC_URL
+DATA=$QC_DATA
+
+OUTFILE=qccheck_response.js
+
+echo Output to $OUTFILE
+
+CMD="time curl -H Content-Type:application/json -o $OUTFILE -d @$DATA $URL"
+
+response=`$CMD`
+
+echo $response
+

@@ -16,6 +16,12 @@
     <property name="common.libs" value="${this}/common/lib"/>
     <property name="server.classes" value="${dir.builddir}/server/classes"/>
     <property name="web_service.libs" value="${WebContent}/WEB-INF/lib"/>
+    <property name="test.root" value="${this}/test"/>
+    <property name="test.libs" value="${test.root}/lib"/>
+	<property name="test.server-src" value="${test.root}/server/src"/>
+	<property name="test.common-src" value="${test.root}/common/src"/>
+	<property name="test.client-src" value="${test.root}/client/src"/>
+	<property name="test.classes" value="${test.root}/build/classes"/>
     <target name="clean-client">
         <delete>
         	<fileset dir="${client.classes}">
@@ -37,7 +43,14 @@
         	</fileset>
         </delete>
 	</target>
-    <target name="clean-all" depends="clean-client, clean-common, clean-server"/>
+    <target name="clean-test">
+        <delete>
+        	<fileset dir="${test.classes}">
+            	 <include name="**/*" />
+        	</fileset>
+        </delete>
+	</target>
+    <target name="clean-all" depends="clean-client, clean-common, clean-server, clean-test"/>
     <target name="clean" depends="clean-all"/>
     <target name="compile-common" >
         <mkdir dir="${common.classes}"/>
@@ -96,6 +109,54 @@
                 <include name="*" />
             </fileset>
         </copy>
+	</target>
+	<!--
+	<classpath name="everything-path">
+                <pathelement location="${lombok}"/>
+                <pathelement location="${servlet-api}"/>
+                <pathelement path="${server.classes}"/>
+                <pathelement path="${common.classes}"/>
+                <pathelement path="${client.classes}"/>
+                <pathelement path="${test.classes}"/>
+                <fileset dir="${web_service.libs}">
+                	 <include name="**/*.jar" />
+                </fileset>
+                <fileset dir="${server.libs}">
+                	 <include name="**/*.jar" />
+                </fileset>
+                <fileset dir="${common.libs}">
+                	 <include name="**/*.jar" />
+                </fileset>
+                <fileset dir="${client.libs}">
+                	 <include name="**/*.jar" />
+                </fileset>
+                <fileset dir="${test.libs}">
+                	 <include name="**/*.jar" />
+                </fileset>
+	</classpath>
+	-->
+    <target name="compile-test-client" depends="compile-all">
+        <mkdir dir="${test.classes}"/>
+		<javac srcdir="${test.client-src}" destdir="${test.classes}" source="1.8" includeantruntime="false">
+            <classpath>
+                <pathelement location="${lombok}"/>
+                <pathelement path="${server.classes}"/>
+                <pathelement path="${common.classes}"/>
+                <pathelement path="${client.classes}"/>
+                <pathelement path="${test.classes}"/>
+                <fileset dir="${common.libs}">
+                	 <include name="**/*.jar" />
+                </fileset>
+                <fileset dir="${client.libs}">
+                	 <include name="**/*.jar" />
+                </fileset>
+				<!--
+                <fileset dir="${web_service.libs}">
+                	 <include name="**/*.jar" />
+                </fileset>
+				-->
+            </classpath>
+        </javac>
 	</target>
     <target name="compile-all" depends="compile-client, compile-server"/>
 	<target name="all" depends="client-jar, build-war" />

@@ -1,0 +1,88 @@
+event:{
+    "version": "1.0",
+    "resource": "/xcService",
+    "path": "/qcs/xcService",
+    "httpMethod": "POST",
+    "headers": {
+        "'content-type": "application/json'",
+        "Content-Length": "2547",
+        "Content-Type": "application/x-www-form-urlencoded",
+        "Host": "syoua7rmr3.execute-api.us-west-1.amazonaws.com",
+        "User-Agent": "curl/7.64.1",
+        "X-Amzn-Trace-Id": "Root=1-62264020-6dc7d1755888d7057f12b071",
+        "X-Forwarded-For": "161.55.82.65",
+        "X-Forwarded-Port": "443",
+        "X-Forwarded-Proto": "https",
+        "accept": "*/*"
+    },
+    "multiValueHeaders": {
+        "'content-type": [
+            "application/json'"
+        ],
+        "Content-Length": [
+            "2547"
+        ],
+        "Content-Type": [
+            "application/x-www-form-urlencoded"
+        ],
+        "Host": [
+            "syoua7rmr3.execute-api.us-west-1.amazonaws.com"
+        ],
+        "User-Agent": [
+            "curl/7.64.1"
+        ],
+        "X-Amzn-Trace-Id": [
+            "Root=1-62264020-6dc7d1755888d7057f12b071"
+        ],
+        "X-Forwarded-For": [
+            "161.55.82.65"
+        ],
+        "X-Forwarded-Port": [
+            "443"
+        ],
+        "X-Forwarded-Proto": [
+            "https"
+        ],
+        "accept": [
+            "*/*"
+        ]
+    },
+    "queryStringParameters": null,
+    "multiValueQueryStringParameters": null,
+    "requestContext": {
+        "accountId": "928198976571",
+        "apiId": "syoua7rmr3",
+        "domainName": "syoua7rmr3.execute-api.us-west-1.amazonaws.com",
+        "domainPrefix": "syoua7rmr3",
+        "extendedRequestId": "On71LjwgyK4EM9A=",
+        "httpMethod": "POST",
+        "identity": {
+            "accessKey": null,
+            "accountId": null,
+            "caller": null,
+            "cognitoAmr": null,
+            "cognitoAuthenticationProvider": null,
+            "cognitoAuthenticationType": null,
+            "cognitoIdentityId": null,
+            "cognitoIdentityPoolId": null,
+            "principalOrgId": null,
+            "sourceIp": "161.55.82.65",
+            "user": null,
+            "userAgent": "curl/7.64.1",
+            "userArn": null
+        },
+        "path": "/qcs/xcService",
+        "protocol": "HTTP/1.1",
+        "requestId": "On71LjwgyK4EM9A=",
+        "requestTime": "07/Mar/2022:17:25:52 +0000",
+        "requestTimeEpoch": 1646673952964,
+        "resourceId": "ANY /xcService",
+        "resourcePath": "/xcService",
+        "stage": "qcs"
+    },
+    "pathParameters": null,
+    "stageVariables": null,
+    "body": "eyJyZXF1ZXN0SWQiOiIxNjQ2MTc3NTAxMjIwIiwiY29uZmlndXJhdGlvbiI6bnVsbCwiZGF0YSI6eyJkYXRhX3ZhcmlhYmxlcyI6W3sic3RhbmRhcmRfbmFtZSI6eyJuYW1lIjoiQ1REU0FMIiwidm9jYWJ1bGFyeSI6bnVsbH19LHsic3RhbmRhcmRfbmFtZSI6eyJuYW1lIjoiU0FMTlRZIiwidm9jYWJ1bGFyeSI6bnVsbH19LHsic3RhbmRhcmRfbmFtZSI6eyJuYW1lIjoiQ1RET1hZIiwidm9jYWJ1bGFyeSI6bnVsbH19LHsic3RhbmRhcmRfbmFtZSI6eyJuYW1lIjoiT1hZR0VOIiwidm9jYWJ1bGFyeSI6bnVsbH19XSwic3VwcGxlbWVudGFsX3ZhcmlhYmxlcyI6W3sic3RhbmRhcmRfbmFtZSI6eyJuYW1lIjoiREFURSIsInZvY2FidWxhcnkiOm51bGx9fSx7InN0YW5kYXJkX25hbWUiOnsibmFtZSI6IlRJTUUiLCJ2b2NhYnVsYXJ5IjpudWxsfX0seyJzdGFuZGFyZF9uYW1lIjp7Im5hbWUiOiJMQVRJVFVERSIsInZvY2FidWxhcnkiOm51bGx9fSx7InN0YW5kYXJkX25hbWUiOnsibmFtZSI6IkxPTkdJVFVERSIsInZvY2FidWxhcnkiOm51bGx9fSx7InN0YW5kYXJkX25hbWUiOnsibmFtZSI6IkRFUFRIIiwidm9jYWJ1bGFyeSI6bnVsbH19LHsic3RhbmRhcmRfbmFtZSI6eyJuYW1lIjoiQ1REUFJTIiwidm9jYWJ1bGFyeSI6bnVsbH19XSwicm93cyI6W3sicm93X2lkIjoiMCIsInZhbHVlcyI6WyIzNS42NjIyIiwiMzUuNjUyNyIsIjE5NC4xIiwiMTk0LjAiLCIyMDE1MDQxMSIsIjA1NTAiLCItMTYuNTAxMSIsIi0xNTAuMDAwNiIsIjQyODMiLCIzLjEiXX0seyJyb3dfaWQiOiIxIiwidmFsdWVzIjpbIjM1LjY2MzgiLCIzNS42NTcwIiwiMTk1LjciLCIxOTQuMCIsIjIwMTUwNDExIiwiMDU1MCIsIi0xNi41MDExIiwiLTE1MC4wMDA2IiwiNDI4MyIsIjIwLjEiXX0seyJyb3dfaWQiOiIyIiwidmFsdWVzIjpbIjM1LjcyMTIiLCIzNS43MTY3IiwiMTk1LjYiLCIxOTcuMCIsIjIwMTUwNDExIiwiMDU1MCIsIi0xNi41MDExIiwiLTE1MC4wMDA2IiwiNDI4MyIsIjQxLjciXX0seyJyb3dfaWQiOiIzIiwidmFsdWVzIjpbIjM1Ljg1MDYiLCIzNS44NTQwIiwiMjA0LjUiLCIyMDMuMyIsIjIwMTUwNDExIiwiMDU1MCIsIi0xNi41MDExIiwiLTE1MC4wMDA2IiwiNDI4MyIsIjY2LjQiXX0seyJyb3dfaWQiOiI0IiwidmFsdWVzIjpbIjM2LjE3NDEiLCIzNi4xNzE1IiwiMTk2LjkiLCIxOTkuNiIsIjIwMTUwNDExIiwiMDU1MCIsIi0xNi41MDExIiwiLTE1MC4wMDA2IiwiNDI4MyIsIjkxLjYiXX0seyJyb3dfaWQiOiI1IiwidmFsdWVzIjpbIjM2LjEyMDYiLCIzNi4xMTU5IiwiMTg2LjkiLCIxODcuNyIsIjIwMTUwNDExIiwiMDU1MCIsIi0xNi41MDExIiwiLTE1MC4wMDA2IiwiNDI4MyIsIjExNy4wIl19LHsicm93X2lkIjoiNiIsInZhbHVlcyI6WyIzNi4wMDEyIiwiMzUuOTg3NiIsIjE3OS4wIiwiMTc3LjgiLCIyMDE1MDQxMSIsIjA1NTAiLCItMTYuNTAxMSIsIi0xNTAuMDAwNiIsIjQyODMiLCIxNTguMCJdfSx7InJvd19pZCI6IjciLCJ2YWx1ZXMiOlsiMzUuNzY3NCIsIjM1Ljc2MTYiLCIxOTAuNiIsIjE4OS44IiwiMjAxNTA0MTEiLCIwNTUwIiwiLTE2LjUwMTEiLCItMTUwLjAwMDYiLCI0MjgzIiwiMjI0LjkiXX0seyJyb3dfaWQiOiI4IiwidmFsdWVzIjpbIjM1LjQ3ODgiLCIzNS40NzQ3IiwiMTg3LjYiLCItOTk5LjAiLCIyMDE1MDQxMSIsIjA1NTAiLCItMTYuNTAxMSIsIi0xNTAuMDAwNiIsIjQyODMiLCIzMDAuNyJdfSx7InJvd19pZCI6IjkiLCJ2YWx1ZXMiOlsiMzUuMDgxNyIsIjM1LjA3MzkiLCIxNjQuOCIsIjE2NC4yIiwiMjAxNTA0MTEiLCIwNTUwIiwiLTE2LjUwMTEiLCItMTUwLjAwMDYiLCI0MjgzIiwiMzc1LjIiXX0seyJyb3dfaWQiOiIxMCIsInZhbHVlcyI6WyIzNC41ODA2IiwiMzQuNTc1NiIsIjE0Ny4yIiwiMTQ3LjkiLCIyMDE1MDQxMSIsIjA1NTAiLCItMTYuNTAxMSIsIi0xNTAuMDAwNiIsIjQyODMiLCI0NjUuOSJdfSx7InJvd19pZCI6IjExIiwidmFsdWVzIjpbIjM0LjQ0MjEiLCIzNC40NDE1IiwiMTQwLjgiLCIxNDAuNSIsIjIwMTUwNDExIiwiMDU1MCIsIi0xNi41MDExIiwiLTE1MC4wMDA2IiwiNDI4MyIsIjU5OS44Il19LHsicm93X2lkIjoiMTIiLCJ2YWx1ZXMiOlsiMzQuNDY0OSIsIjM0LjQ2NTEiLCIxMzcuNSIsIjEzOC4xIiwiMjAxNTA0MTEiLCIwNTUwIiwiLTE2LjUwMTEiLCItMTUwLjAwMDYiLCI0MjgzIiwiNzQ5LjUiXX0seyJyb3dfaWQiOiIxMyIsInZhbHVlcyI6WyIzNC40ODQxIiwiMzQuNDgyNCIsIjE0MC4wIiwiMTQwLjkiLCIyMDE1MDQxMSIsIjA1NTAiLCItMTYuNTAxMSIsIi0xNTAuMDAwNiIsIjQyODMiLCI5MDAuMyJdfSx7InJvd19pZCI6IjE0IiwidmFsdWVzIjpbIjM0LjUxNjEiLCItOTk5LjAwMDAiLCIxMzcuOSIsIjEzOC4zIiwiMjAxNTA0MTEiLCIwNTUwIiwiLTE2LjUwMTEiLCItMTUwLjAwMDYiLCI0MjgzIiwiMTA0OS42Il19LHsicm93X2lkIjoiMTUiLCJ2YWx1ZXMiOlsiMzQuNTQ1NiIsIjM0LjU0NjgiLCIxNDAuMCIsIjE0MC42IiwiMjAxNTA0MTEiLCIwNTUwIiwiLTE2LjUwMTEiLCItMTUwLjAwMDYiLCI0MjgzIiwiMTIzMi4xIl19XX19",
+    "isBase64Encoded": true
+}
+
